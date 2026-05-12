@@ -1,0 +1,105 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --background: #fdfdfc; /* Off-white, menos brillante */
+  --foreground: #334155; /* Slate 700, gris oscuro en lugar de casi negro */
+  
+  --primary: #fb923c; /* Naranja pastel (Orange 400) */
+  --primary-hover: #f97316; /* Orange 500 */
+  --primary-foreground: #ffffff;
+
+  --secondary: #2dd4bf; /* Teal pastel (Teal 400) */
+  --secondary-hover: #14b8a6; /* Teal 500 */
+  --secondary-foreground: #ffffff;
+
+  --accent: #f1f5f9; /* Slate 100 */
+  --accent-foreground: #334155;
+
+  --muted: #e2e8f0; /* Slate 200 */
+  --muted-foreground: #64748b; /* Slate 500 */
+
+  --border: #cbd5e1; /* Slate 300 */
+  
+  --card: #ffffff;
+  --card-foreground: #334155;
+  
+  --ring: #fb923c;
+}
+
+:root[class~="dark"] {
+  --background: #1e293b; /* Slate 800, gris oscuro suave, no negro */
+  --foreground: #f8fafc;
+  
+  --primary: #fb923c; /* Naranja pastel */
+  --primary-hover: #fdba74; /* Orange 300 para hover oscuro */
+  --primary-foreground: #0f172a;
+
+  --secondary: #2dd4bf; /* Teal pastel */
+  --secondary-hover: #5eead4; /* Teal 300 para hover oscuro */
+  --secondary-foreground: #0f172a;
+
+  --accent: #334155; /* Slate 700 */
+  --accent-foreground: #f8fafc;
+
+  --muted: #334155; /* Slate 700 */
+  --muted-foreground: #94a3b8; /* Slate 400 */
+
+  --border: #475569; /* Slate 600 */
+  
+  --card: #0f172a; /* Slate 900 para contraste sutil con el fondo 800 */
+  --card-foreground: #f8fafc;
+  
+  --ring: #fb923c;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-hover: var(--secondary-hover);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-ring: var(--ring);
+  
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Glassmorphism utilities */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+:root[class~="dark"] .glass {
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Smooth transitions */
+* {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
