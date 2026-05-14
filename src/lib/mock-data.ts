@@ -102,3 +102,41 @@ export const CATEGORIES = [
   { id: "juguetes", name: "Juguetes" },
   { id: "higiene", name: "Higiene y Salud" }
 ];
+
+export type OrderStatus = 'RECIBIDO' | 'PREPARANDO' | 'EN_CAMINO' | 'ENTREGADO';
+
+export type Order = {
+  id: string;
+  date: string;
+  status: OrderStatus;
+  total: number;
+  items: { productName: string; quantity: number }[];
+  shippingAddress: string;
+  estimatedDelivery: string;
+};
+
+export const MOCK_ORDERS: Order[] = [
+  {
+    id: "ORD-12345",
+    date: "2026-05-12T10:30:00Z",
+    status: "EN_CAMINO",
+    total: 45999,
+    items: [
+      { productName: "Alimento Premium Perros Adultos 15kg", quantity: 1 }
+    ],
+    shippingAddress: "San Martín 1234, Piso 2 Depto B, Mar del Plata",
+    estimatedDelivery: "2026-05-14T18:00:00Z"
+  },
+  {
+    id: "ORD-12344",
+    date: "2026-04-20T14:15:00Z",
+    status: "ENTREGADO",
+    total: 13400,
+    items: [
+      { productName: "Collar Ajustable Reflectivo", quantity: 1 },
+      { productName: "Shampoo Hipoalergénico 500ml", quantity: 1 }
+    ],
+    shippingAddress: "San Martín 1234, Piso 2 Depto B, Mar del Plata",
+    estimatedDelivery: "2026-04-22T10:00:00Z"
+  }
+];

@@ -1,48 +1,48 @@
-# Virtual Pet MDQ - Web Client
+# 🐾 Virtual Pet - Web Client (Grupo 2)
 
-Este repositorio contiene el prototipo funcional de la aplicación web cliente para **Virtual Pet MDQ**, una tienda de mascotas 100% digital con alcance a la ciudad de Mar del Plata.
+Este repositorio contiene el **Cliente Web (Frontend)** de la plataforma e-commerce de **Virtual Pet**, desarrollado como Prototipo Funcional 1.0.
 
-## Características Principales
+Siguiendo las decisiones arquitectónicas del equipo (**ADR-01**), este cliente opera como una aplicación web completamente independiente, diseñada para consumir la lógica de negocio exclusivamente a través de APIs REST (actualmente simulado con Mock Data local para esta fase).
 
-Cumpliendo con los requerimientos de Arquitectura y los Atributos de Calidad (QAW):
+## 🚀 Tecnologías Utilizadas
 
-- **Experiencia de Usuario Premium:** Diseño moderno (Mobile First) implementado con *Tailwind CSS*.
-- **Modo Claro / Oscuro:** Paleta de colores adaptable e integrada con `next-themes` (tonos pastel y slate para no cansar la vista).
-- **Checkout para Invitados:** Permite a los usuarios realizar compras rápidas sin obligación de crear una cuenta.
-- **Grilla de Productos Responsiva:** Catálogo ágil y rápido, con identificadores visuales claros para productos sin stock.
+- **Framework:** [Next.js 16](https://nextjs.org/) (App Router)
+- **UI Library:** [React 19](https://react.dev/)
+- **Estilos:** [Tailwind CSS v4](https://tailwindcss.com/)
+- **Lenguaje:** [TypeScript](https://www.typescriptlang.org/)
+- **Iconos:** [Lucide React](https://lucide.dev/)
 
-## Vistas Implementadas
+## ✨ Funcionalidades (Prototipo 1.0)
 
-El prototipo cuenta con el siguiente flujo navegable simulado:
+El prototipo abarca el 100% del "Viaje del Cliente", incorporando una estética moderna con efectos de *Glassmorphism* y micro-animaciones:
 
-- `/` - **Home**: Hero section promocional, propuesta de valor (envío gratis en MDQ, pagos seguros) y categorías principales.
-- `/catalog` - **Catálogo**: Listado completo de productos (alimentos, juguetes, higiene, accesorios) y grilla de stock.
-- `/checkout` - **Checkout**: Formulario de envío y resumen persistente de compra.
-- `/login` - **Login**: Interfaz de ingreso amigable.
+- **Catálogo Interactivo:** Grilla responsiva de productos con filtrado dinámico por categorías, campos de rango de precios y ordenamiento personalizado.
+- **Carrito de Compras:** Gestionado globalmente vía `React Context` y persistido localmente (`localStorage`). Panel deslizante (*Slide-Over*) y notificaciones *Toast*.
+- **Checkout Seguro:** Flujo de pago validado y segmentado (Datos -> Envío -> Pago) simulando una pasarela de pago real.
+- **Autenticación (UI):** Interfaces modernas para Iniciar Sesión y Registro de cuentas.
+- **Perfil de Usuario (SPA):** Panel de administración personal con pestañas interactivas, modales de edición simulados y listado de direcciones/tarjetas.
+- **Seguimiento de Envíos:** Línea de tiempo interactiva (*Timeline*) para monitorear el estado logístico de una orden.
 
-## Stack Tecnológico
+## ⚙️ Cómo ejecutar el proyecto localmente
 
-- **Framework:** [Next.js 15](https://nextjs.org/) (App Router)
-- **Estilos:** CSS Puro + [Tailwind CSS v4](https://tailwindcss.com/)
-- **Íconos:** [Lucide React](https://lucide.dev/)
-- **Datos Simulados:** Integración inicial en `/src/lib/mock-data.ts` como capa intermedia hasta que el *Monolito Modular* (Backend) exponga la API REST real.
+1. Clonar el repositorio.
+2. Asegurarse de tener Node.js instalado (v18+ recomendado).
+3. Instalar las dependencias:
 
-## Cómo empezar a desarrollar
+```bash
+npm install
+```
 
-Para levantar el entorno de manera local:
+4. Ejecutar el servidor de desarrollo:
 
-1. Cloná este repositorio.
-2. Asegurate de tener `Node.js` instalado.
-3. Instalá las dependencias del proyecto:
-   ```bash
-   npm install
-   ```
-4. Corré el servidor de desarrollo:
-   ```bash
-   npm run dev
-   ```
-5. Abrí tu navegador en [http://localhost:3000](http://localhost:3000) para ver el sitio funcionando.
+```bash
+npm run dev
+```
 
-## Sobre el Grupo 2
+5. Abrir [http://localhost:3000](http://localhost:3000) en el navegador.
 
-Este es un proyecto académico de la asignatura de Diseño de Arquitectura de Software para la resolución del "TP Real 1.0". Todo el trabajo realizado, incluyendo ADRs, QAW y la definición arquitectónica, se puede encontrar documentado en la carpeta `/docs` en formato Markdown.
+## 🏗️ Arquitectura y Próximos Pasos
+
+Actualmente, toda la información de productos y órdenes provienen de `/src/lib/mock-data.ts`. 
+
+Una vez que el equipo de Backend finalice los endpoints REST del **Monolito Modular**, el siguiente paso será reemplazar la lógica de persistencia local por llamadas HTTP (usando `fetch` o `axios`) hacia dichos endpoints, sin alterar la maquetación ni las vistas de este repositorio.

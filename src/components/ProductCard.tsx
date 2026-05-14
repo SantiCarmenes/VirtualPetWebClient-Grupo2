@@ -1,9 +1,20 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { ShoppingCart } from "lucide-react";
 import { Product } from "@/lib/mock-data";
+import { useCart } from "@/context/CartContext";
 
 export function ProductCard({ product }: { product: Product }) {
+  const { addItem } = useCart();
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent navigating to the product detail page
+    e.stopPropagation();
+    addItem(product, 1, product.variants?.[0]); // Add default variant if any
+  };
+
   return (
     <div className="group flex flex-col bg-card rounded-2xl border border-border overflow-hidden hover:shadow-lg transition-all hover:border-primary/50 relative">
       {!product.inStock && (
@@ -12,7 +23,7 @@ export function ProductCard({ product }: { product: Product }) {
         </div>
       )}
       
-      <Link href={`/catalog/${product.id}`} className="relative aspect-square bg-muted/20 overflow-hidden">
+      <Link href={`/catalog/${product.id}`} className="relative aspect-square bg-muted/20 overflow-hidden block">
         {/* Placeholder for real image */}
         <div className="absolute inset-0 flex items-center justify-center text-muted-foreground/30 bg-muted">
           [Image]
@@ -24,7 +35,7 @@ export function ProductCard({ product }: { product: Product }) {
         <div className="text-xs text-muted-foreground mb-2 uppercase tracking-wide font-medium">
           {product.category}
         </div>
-        <Link href={`/catalog/${product.id}`} className="hover:text-primary transition-colors">
+        <Link href={`/catalog/${product.id}`} className="hover:text-primary transition-colors block">
           <h3 className="font-bold text-foreground leading-tight mb-2 line-clamp-2">
             {product.name}
           </h3>
@@ -36,6 +47,7 @@ export function ProductCard({ product }: { product: Product }) {
           </div>
           <button 
             disabled={!product.inStock}
+            onClick={handleAddToCart}
             className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center hover:bg-primary hover:text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             title={product.inStock ? "Agregar al carrito" : "Sin stock"}
           >

@@ -1,16 +1,27 @@
+"use client";
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowLeft, Mail, Lock } from "lucide-react";
 
 export default function LoginPage() {
+  const router = useRouter();
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Simulate login logic, then redirect to profile
+    router.push("/profile");
+  };
+
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-muted/30 p-4">
+    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-muted/30 p-4 animate-in fade-in duration-500">
       <div className="w-full max-w-md bg-card rounded-3xl shadow-xl border border-border p-8 relative overflow-hidden">
         {/* Decorative background element */}
         <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-48 h-48 bg-primary/10 rounded-full blur-2xl"></div>
         <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/2 w-48 h-48 bg-secondary/10 rounded-full blur-2xl"></div>
         
         <div className="relative z-10">
-          <Link href="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors mb-8">
+          <Link href="/catalog" className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors mb-8">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Volver a la tienda
           </Link>
@@ -20,7 +31,7 @@ export default function LoginPage() {
             <p className="text-muted-foreground">Ingresá a tu cuenta de Virtual Pet</p>
           </div>
 
-          <form className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
               <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                 Correo Electrónico
@@ -41,7 +52,7 @@ export default function LoginPage() {
                 <label className="text-sm font-medium leading-none">
                   Contraseña
                 </label>
-                <a href="#" className="text-sm font-medium text-primary hover:text-primary-hover">
+                <a href="#" className="text-sm font-medium text-primary hover:text-primary-hover transition-colors">
                   ¿Olvidaste tu contraseña?
                 </a>
               </div>
@@ -66,9 +77,9 @@ export default function LoginPage() {
 
           <div className="mt-8 text-center text-sm text-muted-foreground">
             ¿No tenés cuenta?{" "}
-            <a href="#" className="font-bold text-primary hover:text-primary-hover">
+            <Link href="/register" className="font-bold text-primary hover:text-primary-hover transition-colors">
               Registrate acá
-            </a>
+            </Link>
           </div>
         </div>
       </div>
