@@ -2,21 +2,43 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Mail, Lock, User, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Mail, Lock, User, CheckCircle2, AlertCircle, AtSign } from "lucide-react";
 import { useState } from "react";
+import { fetchApi } from "@/lib/api";
 
 export default function RegisterPage() {
   const router = useRouter();
   const [isRegistered, setIsRegistered] = useState(false);
+  
+  // States
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simula registro exitoso y cambio a estado de éxito local
-    setIsRegistered(true);
-    // Redirige al login después de 2 segundos
-    setTimeout(() => {
-      router.push("/login");
-    }, 2000);
+    setError(null);
+    setIsLoading(true);
+
+    try {
+      await fetchApi('/auth/register', {
+        method: 'POST',
+        body: JSON.stringify({ firstName, lastName, username, email, password })
+      });
+      
+      setIsRegistered(true);
+      setTimeout(() => {
+        router.push("/login");
+      }, 2000);
+    } catch (err: any) {
+      setError(err.message || 'Ocurrió un error al intentar registrarte.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (isRegistered) {
@@ -35,23 +57,30 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-muted/30 p-4 animate-in fade-in duration-500">
-      <div className="w-full max-w-md bg-card rounded-3xl shadow-xl border border-border p-8 relative overflow-hidden">
+      <div className="w-full max-w-md bg-card rounded-3xl shadow-xl border border-border p-8 relative overflow-hidden mt-8 mb-8">
         {/* Decorative background elements */}
         <div className="absolute top-0 left-0 -translate-y-1/2 -translate-x-1/2 w-48 h-48 bg-primary/10 rounded-full blur-2xl"></div>
         <div className="absolute bottom-0 right-0 translate-y-1/2 translate-x-1/2 w-48 h-48 bg-secondary/10 rounded-full blur-2xl"></div>
         
         <div className="relative z-10">
-          <Link href="/login" className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors mb-8">
+          <Link href="/login" className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors mb-6">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Volver a Iniciar Sesión
           </Link>
 
-          <div className="text-center mb-8">
+          <div className="text-center mb-6">
             <h1 className="text-3xl font-extrabold tracking-tight mb-2">Crear Cuenta</h1>
             <p className="text-muted-foreground">Sumate a la comunidad de Virtual Pet</p>
           </div>
 
           <form onSubmit={handleRegister} className="space-y-4">
+            {error && (
+              <div className="bg-red-500/10 border border-red-500/20 text-red-500 text-sm p-3 rounded-xl flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <p>{error}</p>
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium leading-none">Nombre</label>
@@ -60,6 +89,8 @@ export default function RegisterPage() {
                   <input 
                     type="text" 
                     placeholder="Tu nombre" 
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
                     className="w-full pl-9 pr-4 py-3 rounded-xl border border-border bg-background focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all text-sm"
                     required
                   />
@@ -70,7 +101,24 @@ export default function RegisterPage() {
                 <input 
                   type="text" 
                   placeholder="Tu apellido" 
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
                   className="w-full px-4 py-3 rounded-xl border border-border bg-background focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all text-sm"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium leading-none">Nombre de Usuario</label>
+              <div className="relative">
+                <AtSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input 
+                  type="text" 
+                  placeholder="usuario123" 
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="w-full pl-9 pr-4 py-3 rounded-xl border border-border bg-background focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all text-sm"
                   required
                 />
               </div>
@@ -83,6 +131,8 @@ export default function RegisterPage() {
                 <input 
                   type="email" 
                   placeholder="ejemplo@correo.com" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-9 pr-4 py-3 rounded-xl border border-border bg-background focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all text-sm"
                   required
                 />
@@ -96,6 +146,9 @@ export default function RegisterPage() {
                 <input 
                   type="password" 
                   placeholder="••••••••" 
+                  minLength={8}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-9 pr-4 py-3 rounded-xl border border-border bg-background focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all text-sm"
                   required
                 />
@@ -104,9 +157,10 @@ export default function RegisterPage() {
 
             <button 
               type="submit" 
-              className="w-full py-3 px-4 bg-primary text-primary-foreground font-bold rounded-xl hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/30 transition-all mt-6"
+              disabled={isLoading}
+              className="w-full py-3 px-4 bg-primary text-primary-foreground font-bold rounded-xl hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/30 transition-all mt-6 disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              Registrarme
+              {isLoading ? 'Registrando...' : 'Registrarme'}
             </button>
           </form>
 

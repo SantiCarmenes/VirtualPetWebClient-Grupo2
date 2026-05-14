@@ -2,15 +2,38 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Mail, Lock } from "lucide-react";
+import { ArrowLeft, Mail, Lock, AlertCircle } from "lucide-react";
+import { useState } from "react";
+import { fetchApi } from "@/lib/api";
 
 export default function LoginPage() {
   const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate login logic, then redirect to profile
-    router.push("/profile");
+    setError(null);
+    setIsLoading(true);
+
+    try {
+      const data = await fetchApi('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ email, password })
+      });
+      
+      // Guardar el token en local storage
+      localStorage.setItem('accessToken', data.accessToken);
+      
+      // Redirigir al perfil
+      router.push("/profile");
+    } catch (err: any) {
+      setError(err.message || 'Error al iniciar sesión. Verificá tus credenciales.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -32,6 +55,13 @@ export default function LoginPage() {
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
+            {error && (
+              <div className="bg-red-500/10 border border-red-500/20 text-red-500 text-sm p-3 rounded-xl flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <p>{error}</p>
+              </div>
+            )}
+
             <div className="space-y-2">
               <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                 Correo Electrónico
@@ -41,6 +71,8 @@ export default function LoginPage() {
                 <input 
                   type="email" 
                   placeholder="ejemplo@correo.com" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 rounded-xl border border-border bg-background focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
                   required
                 />
@@ -61,6 +93,8 @@ export default function LoginPage() {
                 <input 
                   type="password" 
                   placeholder="••••••••" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 rounded-xl border border-border bg-background focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
                   required
                 />
@@ -69,9 +103,10 @@ export default function LoginPage() {
 
             <button 
               type="submit" 
-              className="w-full py-3 px-4 bg-primary text-primary-foreground font-bold rounded-xl hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/30 transition-all mt-6"
+              disabled={isLoading}
+              className="w-full py-3 px-4 bg-primary text-primary-foreground font-bold rounded-xl hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/30 transition-all mt-6 disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              Iniciar Sesión
+              {isLoading ? 'Iniciando...' : 'Iniciar Sesión'}
             </button>
           </form>
 
