@@ -24,8 +24,9 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password })
       });
       
-      // Guardar el token en local storage
+      // Guardar los tokens en local storage
       localStorage.setItem('accessToken', data.accessToken);
+      localStorage.setItem('refreshToken', data.refreshToken);
       
       // Redirigir al perfil
       router.push("/profile");

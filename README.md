@@ -16,7 +16,10 @@ Siguiendo las decisiones arquitectónicas del equipo (**ADR-01**), este cliente 
 
 El proyecto abarca el 100% del "Viaje del Cliente" a nivel maquetación y comenzó a conectarse a la Base de Datos real:
 
-- **Autenticación Real:** El Login y Registro están totalmente integrados al servidor NestJS. Envía peticiones HTTP, recibe códigos de error, persistencia de `accessToken` vía localStorage.
+- **Autenticación Real:** El Login y Registro están totalmente integrados al servidor NestJS. 
+  - Manejo de errores devueltos por el backend.
+  - Persistencia segura del `accessToken` y `refreshToken` vía localStorage.
+  - **Interceptor de Sesión (Refresh Token Automático):** Si el token expira (Error 401), el cliente se encarga automáticamente de renovarlo de forma transparente (*silently*) pegándole a `/auth/refresh`, manteniendo la sesión del usuario intacta sin interrupciones.
 - **Catálogo Interactivo (Mock):** Grilla responsiva de productos con filtrado dinámico por categorías, campos de rango de precios y ordenamiento personalizado.
 - **Carrito de Compras (Local):** Gestionado globalmente vía `React Context` y persistido en `localStorage`. Panel deslizante (*Slide-Over*) y notificaciones *Toast*.
 - **Checkout Seguro (Mock):** Flujo de pago validado y segmentado (Datos -> Envío -> Pago).
