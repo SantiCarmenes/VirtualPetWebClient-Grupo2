@@ -21,7 +21,7 @@ FROM node:18-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV production
-ENV PORT 3000
+ENV PORT 4000
 
 # Copia los archivos necesarios desde el builder
 COPY --from=builder /app/next.config.ts ./
@@ -30,7 +30,7 @@ COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 
-EXPOSE 3000
+EXPOSE 4000
 
 # Comando para iniciar la aplicación
 CMD ["npm", "start"]
