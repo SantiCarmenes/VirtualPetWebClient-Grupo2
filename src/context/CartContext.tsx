@@ -1,79 +1,65 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
-import { Product } from "@/lib/mock-data";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import type { CartItem, Cart } from "@/lib/types";
+import * as cartService from "@/lib/services/cart.service";
 
-export interface CartItem {
-  product: Product;
-  quantity: number;
-  selectedVariant?: string;
-}
+// ─── Tipos del contexto ───────────────────────────────────────
 
 interface CartContextType {
   items: CartItem[];
-  addItem: (product: Product, quantity: number, variant?: string) => void;
-  removeItem: (productId: string, variant?: string) => void;
-  updateQuantity: (productId: string, quantity: number, variant?: string) => void;
-  clearCart: () => void;
+  isLoading: boolean;
   cartCount: number;
   cartTotal: number;
   isCartOpen: boolean;
   setIsCartOpen: (isOpen: boolean) => void;
+  addItem: (variantId: string, quantity: number) => Promise<void>;
+  removeItem: (itemId: string) => Promise<void>;
+  updateQuantity: (itemId: string, quantity: number) => Promise<void>;
+  clearCart: () => Promise<void>;
+  syncCart: () => Promise<void>;
 }
+
+// ─── Contexto ────────────────────────────────────────────────
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
+// ─── Provider ────────────────────────────────────────────────
+
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [toastMessage, setToastMessage] = useState<{text: string, id: number} | null>(null);
+  const [toastMessage, setToastMessage] = useState<{ text: string; id: number } | null>(null);
 
-  // Load from localStorage on mount
-  useEffect(() => {
-    try {
-      const savedCart = localStorage.getItem("virtualpet_cart");
-      if (savedCart) setItems(JSON.parse(savedCart));
-    } catch {
-      // localStorage blocked (iOS private mode / strict privacy settings)
+  /**
+   * Carga el carrito desde la API.
+   * Solo se llama si hay refreshToken (usuario autenticado).
+   */
+  const syncCart = useCallback(async () => {
+    const hasSession =
+      typeof window !== "undefined" && !!localStorage.getItem("refreshToken");
+
+    if (!hasSession) {
+      setItems([]);
+      return;
     }
-    setIsLoaded(true);
+
+    try {
+      const cart: Cart = await cartService.getCart();
+      setItems(cart.items ?? []);
+    } catch {
+      // Si falla (ej: 401 sin sesión) → carrito vacío silencioso
+      setItems([]);
+    }
   }, []);
 
-  // Save to localStorage whenever items change
+  // Al montar → cargar carrito si hay sesión
   useEffect(() => {
-    if (!isLoaded) return;
-    try {
-      localStorage.setItem("virtualpet_cart", JSON.stringify(items));
-    } catch {
-      // localStorage blocked
-    }
-  }, [items, isLoaded]);
+    syncCart();
+  }, [syncCart]);
 
-  const addItem = (product: Product, quantity: number, variant?: string) => {
-    setItems((prevItems) => {
-      const existingItemIndex = prevItems.findIndex(
-        (item) => item.product.id === product.id && item.selectedVariant === variant
-      );
-
-      if (existingItemIndex >= 0) {
-        const newItems = [...prevItems];
-        // Fix for React Strict Mode: Deep copy the item being modified
-        newItems[existingItemIndex] = {
-          ...newItems[existingItemIndex],
-          quantity: newItems[existingItemIndex].quantity + quantity
-        };
-        return newItems;
-      } else {
-        return [...prevItems, { product, quantity, selectedVariant: variant }];
-      }
-    });
-    
-    // Show Toast Notification instead of opening the cart
-    setToastMessage({ text: `Se agregó ${product.name} al carrito`, id: Date.now() });
-  };
-
-  // Auto-hide toast after 3 seconds
+  // Auto-hide toast después de 3 segundos
   useEffect(() => {
     if (toastMessage) {
       const timer = setTimeout(() => setToastMessage(null), 3000);
@@ -81,36 +67,74 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }, [toastMessage]);
 
-  const removeItem = (productId: string, variant?: string) => {
-    setItems((prevItems) =>
-      prevItems.filter(
-        (item) => !(item.product.id === productId && item.selectedVariant === variant)
-      )
-    );
+  /** Agrega un ítem por variantId y refresca el carrito completo. */
+  const addItem = async (variantId: string, quantity: number) => {
+    setIsLoading(true);
+    try {
+      await cartService.addItem(variantId, quantity);
+      const cart: Cart = await cartService.getCart();
+      setItems(cart.items ?? []);
+
+      const added = cart.items.find((i) => i.variantId === variantId);
+      const name = added?.variant?.product?.name ?? "Producto";
+      setToastMessage({ text: `Se agregó ${name} al carrito`, id: Date.now() });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error al agregar al carrito";
+      setToastMessage({ text: msg, id: Date.now() });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const updateQuantity = (productId: string, quantity: number, variant?: string) => {
+  /** Elimina un ítem por su ID de CartItem. Optimistic update. */
+  const removeItem = async (itemId: string) => {
+    // Optimistic: quitar del estado local de inmediato
+    const previous = items;
+    setItems((prev) => prev.filter((i) => i.id !== itemId));
+
+    try {
+      await cartService.removeItem(itemId);
+    } catch {
+      // Revertir si falla
+      setItems(previous);
+    }
+  };
+
+  /** Actualiza la cantidad de un ítem. Si quantity <= 0 → lo elimina. */
+  const updateQuantity = async (itemId: string, quantity: number) => {
     if (quantity <= 0) {
-      removeItem(productId, variant);
+      await removeItem(itemId);
       return;
     }
-    setItems((prevItems) =>
-      prevItems.map((item) => {
-        if (item.product.id === productId && item.selectedVariant === variant) {
-          return { ...item, quantity };
-        }
-        return item;
-      })
+
+    // Optimistic: actualizar cantidad de inmediato
+    const previous = items;
+    setItems((prev) =>
+      prev.map((i) => (i.id === itemId ? { ...i, quantity } : i))
     );
+
+    try {
+      await cartService.updateItem(itemId, quantity);
+    } catch {
+      // Revertir si falla
+      setItems(previous);
+    }
   };
 
-  const clearCart = () => {
+  /** Vacía el carrito completo. */
+  const clearCart = async () => {
+    const previous = items;
     setItems([]);
+    try {
+      await cartService.clearCart();
+    } catch {
+      setItems(previous);
+    }
   };
 
   const cartCount = items.reduce((total, item) => total + item.quantity, 0);
   const cartTotal = items.reduce(
-    (total, item) => total + item.product.price * item.quantity,
+    (total, item) => total + item.variant.price * item.quantity,
     0
   );
 
@@ -118,18 +142,20 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     <CartContext.Provider
       value={{
         items,
+        isLoading,
+        cartCount,
+        cartTotal,
+        isCartOpen,
+        setIsCartOpen,
         addItem,
         removeItem,
         updateQuantity,
         clearCart,
-        cartCount,
-        cartTotal,
-        isCartOpen,
-        setIsCartOpen
+        syncCart,
       }}
     >
       {children}
-      
+
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed top-20 right-4 z-50 animate-slide-in-right">
@@ -143,7 +169,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function useCart() {
+// ─── Hook ────────────────────────────────────────────────────
+
+export function useCart(): CartContextType {
   const context = useContext(CartContext);
   if (context === undefined) {
     throw new Error("useCart must be used within a CartProvider");

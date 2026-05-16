@@ -4,10 +4,14 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Mail, Lock, AlertCircle } from "lucide-react";
 import { useState } from "react";
-import { fetchApi } from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
+import { useCart } from "@/context/CartContext";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { login } = useAuth();
+  const { syncCart } = useCart();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -19,18 +23,13 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const data = await fetchApi('/auth/login', {
-        method: 'POST',
-        body: JSON.stringify({ email, password })
-      });
-      
-      // El access token llega como cookie HttpOnly (el browser la guarda automáticamente)
-      localStorage.setItem('refreshToken', data.refreshToken);
-      
-      // Redirigir al perfil
-      router.push("/profile");
-    } catch (err: any) {
-      setError(err.message || 'Error al iniciar sesión. Verificá tus credenciales.');
+      await login(email, password);
+      // Sincronizar carrito con el del usuario recién autenticado
+      await syncCart();
+      router.push("/catalog");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error al iniciar sesión. Verificá tus credenciales.";
+      setError(msg);
     } finally {
       setIsLoading(false);
     }
@@ -42,9 +41,12 @@ export default function LoginPage() {
         {/* Decorative background element */}
         <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-48 h-48 bg-primary/10 rounded-full blur-2xl"></div>
         <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/2 w-48 h-48 bg-secondary/10 rounded-full blur-2xl"></div>
-        
+
         <div className="relative z-10">
-          <Link href="/catalog" className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors mb-8">
+          <Link
+            href="/catalog"
+            className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors mb-8"
+          >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Volver a la tienda
           </Link>
@@ -63,14 +65,15 @@ export default function LoginPage() {
             )}
 
             <div className="space-y-2">
-              <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              <label htmlFor="login-email" className="text-sm font-medium leading-none">
                 Correo Electrónico
               </label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <input 
-                  type="email" 
-                  placeholder="ejemplo@correo.com" 
+                <input
+                  id="login-email"
+                  type="email"
+                  placeholder="ejemplo@correo.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 rounded-xl border border-border bg-background focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
@@ -81,18 +84,22 @@ export default function LoginPage() {
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label className="text-sm font-medium leading-none">
+                <label htmlFor="login-password" className="text-sm font-medium leading-none">
                   Contraseña
                 </label>
-                <Link href="/forgot-password" className="text-sm font-medium text-primary hover:text-primary-hover transition-colors">
+                <Link
+                  href="/forgot-password"
+                  className="text-sm font-medium text-primary hover:text-primary-hover transition-colors"
+                >
                   ¿Olvidaste tu contraseña?
                 </Link>
               </div>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <input 
-                  type="password" 
-                  placeholder="••••••••" 
+                <input
+                  id="login-password"
+                  type="password"
+                  placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 rounded-xl border border-border bg-background focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
@@ -101,12 +108,14 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <button 
-              type="submit" 
+            <button
+              id="login-submit"
+              type="submit"
               disabled={isLoading}
+              aria-disabled={isLoading}
               className="w-full py-3 px-4 bg-primary text-primary-foreground font-bold rounded-xl hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/30 transition-all mt-6 disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              {isLoading ? 'Iniciando...' : 'Iniciar Sesión'}
+              {isLoading ? "Iniciando..." : "Iniciar Sesión"}
             </button>
           </form>
 

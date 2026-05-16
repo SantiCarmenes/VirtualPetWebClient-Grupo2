@@ -4,13 +4,14 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Mail, Lock, User, CheckCircle2, AlertCircle, AtSign } from "lucide-react";
 import { useState } from "react";
-import { fetchApi } from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
+import { useCart } from "@/context/CartContext";
 
 export default function RegisterPage() {
   const router = useRouter();
-  const [isRegistered, setIsRegistered] = useState(false);
-  
-  // States
+  const { register } = useAuth();
+  const { syncCart } = useCart();
+
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [username, setUsername] = useState("");
@@ -18,6 +19,7 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isRegistered, setIsRegistered] = useState(false);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,17 +27,15 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
-      await fetchApi('/auth/register', {
-        method: 'POST',
-        body: JSON.stringify({ firstName, lastName, username, email, password })
-      });
-      
+      await register(firstName, lastName, username, email, password);
+      await syncCart();
       setIsRegistered(true);
       setTimeout(() => {
-        router.push("/login");
-      }, 2000);
-    } catch (err: any) {
-      setError(err.message || 'Ocurrió un error al intentar registrarte.');
+        router.push("/catalog");
+      }, 1500);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Ocurrió un error al intentar registrarte.";
+      setError(msg);
     } finally {
       setIsLoading(false);
     }
@@ -49,7 +49,9 @@ export default function RegisterPage() {
             <CheckCircle2 className="w-10 h-10" />
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight mb-2">¡Cuenta creada!</h1>
-          <p className="text-muted-foreground mb-4">Te registraste con éxito. Redirigiendo a Iniciar Sesión...</p>
+          <p className="text-muted-foreground mb-4">
+            Te registraste con éxito. Redirigiendo al catálogo...
+          </p>
         </div>
       </div>
     );
@@ -61,9 +63,12 @@ export default function RegisterPage() {
         {/* Decorative background elements */}
         <div className="absolute top-0 left-0 -translate-y-1/2 -translate-x-1/2 w-48 h-48 bg-primary/10 rounded-full blur-2xl"></div>
         <div className="absolute bottom-0 right-0 translate-y-1/2 translate-x-1/2 w-48 h-48 bg-secondary/10 rounded-full blur-2xl"></div>
-        
+
         <div className="relative z-10">
-          <Link href="/login" className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors mb-6">
+          <Link
+            href="/login"
+            className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors mb-6"
+          >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Volver a Iniciar Sesión
           </Link>
@@ -83,12 +88,15 @@ export default function RegisterPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium leading-none">Nombre</label>
+                <label htmlFor="register-firstname" className="text-sm font-medium leading-none">
+                  Nombre
+                </label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <input 
-                    type="text" 
-                    placeholder="Tu nombre" 
+                  <input
+                    id="register-firstname"
+                    type="text"
+                    placeholder="Tu nombre"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
                     className="w-full pl-9 pr-4 py-3 rounded-xl border border-border bg-background focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all text-sm"
@@ -97,10 +105,13 @@ export default function RegisterPage() {
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium leading-none">Apellido</label>
-                <input 
-                  type="text" 
-                  placeholder="Tu apellido" 
+                <label htmlFor="register-lastname" className="text-sm font-medium leading-none">
+                  Apellido
+                </label>
+                <input
+                  id="register-lastname"
+                  type="text"
+                  placeholder="Tu apellido"
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
                   className="w-full px-4 py-3 rounded-xl border border-border bg-background focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all text-sm"
@@ -110,12 +121,15 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium leading-none">Nombre de Usuario</label>
+              <label htmlFor="register-username" className="text-sm font-medium leading-none">
+                Nombre de Usuario
+              </label>
               <div className="relative">
                 <AtSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input 
-                  type="text" 
-                  placeholder="usuario123" 
+                <input
+                  id="register-username"
+                  type="text"
+                  placeholder="usuario123"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className="w-full pl-9 pr-4 py-3 rounded-xl border border-border bg-background focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all text-sm"
@@ -125,12 +139,15 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium leading-none">Correo Electrónico</label>
+              <label htmlFor="register-email" className="text-sm font-medium leading-none">
+                Correo Electrónico
+              </label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input 
-                  type="email" 
-                  placeholder="ejemplo@correo.com" 
+                <input
+                  id="register-email"
+                  type="email"
+                  placeholder="ejemplo@correo.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-9 pr-4 py-3 rounded-xl border border-border bg-background focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all text-sm"
@@ -140,12 +157,15 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium leading-none">Contraseña</label>
+              <label htmlFor="register-password" className="text-sm font-medium leading-none">
+                Contraseña
+              </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input 
-                  type="password" 
-                  placeholder="••••••••" 
+                <input
+                  id="register-password"
+                  type="password"
+                  placeholder="••••••••"
                   minLength={8}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -155,12 +175,14 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            <button 
-              type="submit" 
+            <button
+              id="register-submit"
+              type="submit"
               disabled={isLoading}
+              aria-disabled={isLoading}
               className="w-full py-3 px-4 bg-primary text-primary-foreground font-bold rounded-xl hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/30 transition-all mt-6 disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              {isLoading ? 'Registrando...' : 'Registrarme'}
+              {isLoading ? "Registrando..." : "Registrarme"}
             </button>
           </form>
 
