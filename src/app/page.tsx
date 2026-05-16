@@ -1,104 +1,168 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Star, Truck, ShieldCheck, Clock } from "lucide-react";
+import { ArrowRight, Truck, ShieldCheck, Clock, Bone, Gamepad2, Scissors, Package } from "lucide-react";
+
+const categories = [
+  { name: "Alimentos",  slug: "alimentos",  Icon: Bone,     img: "/alimentos.png" },
+  { name: "Juguetes",   slug: "juguetes",   Icon: Gamepad2, img: "/juguetes.png" },
+  { name: "Accesorios", slug: "accesorios", Icon: Package,  img: "/accesorios.png" },
+  { name: "Higiene",    slug: "higiene",    Icon: Scissors, img: "/higienesalud.png" },
+];
+
+const features = [
+  { Icon: Truck,       title: "Envío Rápido",  desc: "Entregas en el día con nuestra flota propia en MDQ." },
+  { Icon: ShieldCheck, title: "Compra Segura", desc: "Tus pagos y datos están protegidos en cada transacción." },
+  { Icon: Clock,       title: "Soporte 24/7",  desc: "Estamos siempre disponibles para vos y tu mascota." },
+];
 
 export default function Home() {
   return (
-    <div className="flex flex-col min-h-[calc(100vh-4rem)]">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-primary/5 py-20 lg:py-32">
-        <div className="absolute top-0 right-0 -translate-y-12 translate-x-1/3 opacity-10">
-          <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" className="w-[800px] h-[800px]">
-            <path fill="#f97316" d="M44.7,-76.4C58.8,-69.2,71.8,-59.1,81.6,-46.4C91.4,-33.7,98,-18.4,98.6,-3C99.2,12.4,93.8,27.8,84.4,41.2C75,54.6,61.6,66,46.9,74.5C32.2,83,16.1,88.6,0.3,88.1C-15.5,87.6,-31,81,-44.6,71.8C-58.2,62.6,-69.9,50.8,-77.8,37.1C-85.7,23.4,-89.8,7.8,-88.7,-7.4C-87.6,-22.6,-81.3,-37.4,-72.1,-49.4C-62.9,-61.4,-50.8,-70.6,-37.5,-77.9C-24.2,-85.2,-9.7,-90.6,2.8,-94.6C15.3,-98.6,30.6,-83.6,44.7,-76.4Z" transform="translate(100 100)" />
-          </svg>
-        </div>
-        
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary font-medium text-sm mb-6">
-              <span className="flex h-2 w-2 rounded-full bg-primary animate-pulse"></span>
-              Envíos gratis en Mar del Plata
+    <div className="flex flex-col">
+
+      {/* ── Hero ──────────────────────────────────────────────── */}
+      <section className="relative overflow-hidden bg-accent">
+        <div className="container relative mx-auto px-4 py-16 lg:py-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+
+            {/* texto */}
+            <div className="space-y-7">
+              <span className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-primary text-primary-foreground text-xs font-bold uppercase tracking-widest shadow-sm">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-foreground opacity-50" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-primary-foreground" />
+                </span>
+                Envío gratis en MDQ
+              </span>
+
+              <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.08]">
+                Todo lo que tu<br />
+                mascota{" "}
+                <span className="relative inline-block">
+                  <span className="relative z-10">necesita</span>
+                  <span className="absolute left-0 bottom-1 w-full h-[10px] bg-secondary/40 rounded-sm -z-0" />
+                </span>
+              </h1>
+
+              <p className="text-muted-foreground text-lg leading-relaxed max-w-[420px]">
+                Descubrí el catálogo más completo de alimentos, accesorios y juguetes para tus mascotas. Con envío en el día en MDQ.
+              </p>
+
+              <div className="flex flex-wrap gap-3 pt-1">
+                <Link
+                  href="/catalog"
+                  className="group inline-flex items-center gap-2 px-7 py-3.5 rounded-full bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary-hover hover:shadow-lg transition-all"
+                >
+                  Ver Catálogo
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                </Link>
+                <Link
+                  href="/promotions"
+                  className="inline-flex items-center px-7 py-3.5 rounded-full border border-border bg-background font-semibold text-sm hover:bg-muted transition-all"
+                >
+                  Promociones
+                </Link>
+              </div>
             </div>
-            <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 text-foreground">
-              Todo lo que tu mascota <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary-hover">necesita</span>
-            </h1>
-            <p className="text-lg md:text-xl text-muted-foreground mb-8 leading-relaxed">
-              Virtual Pet nunca defraudará a su mascota. Descubrí el catálogo más completo de alimentos, accesorios y juguetes, 100% digital.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Link 
-                href="/catalog" 
-                className="inline-flex items-center justify-center px-8 py-4 text-base font-medium text-white bg-primary rounded-full hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/30 transition-all group"
-              >
-                Ver Catálogo
-                <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </Link>
-              <Link 
-                href="/promotions" 
-                className="inline-flex items-center justify-center px-8 py-4 text-base font-medium text-foreground bg-background border border-border rounded-full hover:bg-muted transition-all"
-              >
-                Ver Promociones
-              </Link>
+
+            {/* logo */}
+            <div className="hidden lg:flex items-center justify-center lg:justify-end">
+              <div className="animate-float relative w-80 h-80 md:w-[440px] md:h-[440px]">
+                <Image
+                  src="/logo-light.png"
+                  alt="Virtual Pet"
+                  fill
+                  className="object-contain drop-shadow-2xl dark:hidden"
+                  priority
+                />
+                <Image
+                  src="/logo-darky.png"
+                  alt="Virtual Pet"
+                  fill
+                  className="object-contain hidden dark:block"
+                  priority
+                />
+              </div>
             </div>
+
           </div>
         </div>
+
+        <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-b from-transparent to-background" />
       </section>
 
-      {/* Features */}
+      {/* ── Categories ────────────────────────────────────────── */}
       <section className="py-16 bg-background">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="flex flex-col items-center text-center p-6 rounded-2xl bg-muted/30 border border-border/50 hover:border-primary/20 transition-colors">
-              <div className="w-12 h-12 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-4">
-                <Truck className="w-6 h-6" />
-              </div>
-              <h3 className="text-lg font-bold mb-2">Envío Rápido</h3>
-              <p className="text-muted-foreground text-sm">Entregas en el día con nuestra flota propia en MDQ.</p>
+          <div className="flex items-end justify-between mb-10">
+            <div>
+              <p className="text-xs font-semibold tracking-widest uppercase text-muted-foreground mb-1">Explorá</p>
+              <h2 className="text-3xl font-bold">Categorías</h2>
             </div>
-            <div className="flex flex-col items-center text-center p-6 rounded-2xl bg-muted/30 border border-border/50 hover:border-secondary/20 transition-colors">
-              <div className="w-12 h-12 bg-secondary/10 text-secondary rounded-full flex items-center justify-center mb-4">
-                <ShieldCheck className="w-6 h-6" />
-              </div>
-              <h3 className="text-lg font-bold mb-2">Compra Segura</h3>
-              <p className="text-muted-foreground text-sm">Tus pagos y datos están protegidos en cada transacción.</p>
-            </div>
-            <div className="flex flex-col items-center text-center p-6 rounded-2xl bg-muted/30 border border-border/50 hover:border-primary/20 transition-colors">
-              <div className="w-12 h-12 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-4">
-                <Clock className="w-6 h-6" />
-              </div>
-              <h3 className="text-lg font-bold mb-2">Soporte 24/7</h3>
-              <p className="text-muted-foreground text-sm">Estamos siempre disponibles para vos y tu mascota.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Featured Categories */}
-      <section className="py-20 bg-muted/30">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between mb-10">
-            <h2 className="text-3xl font-bold">Categorías Destacadas</h2>
-            <Link href="/catalog" className="text-primary hover:text-primary-hover font-medium flex items-center">
-              Ver todas <ArrowRight className="ml-1 w-4 h-4" />
+            <Link
+              href="/catalog"
+              className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+            >
+              Ver todas <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-            {['Alimentos', 'Juguetes', 'Accesorios', 'Higiene'].map((cat, i) => (
-              <Link key={cat} href={`/catalog?category=${cat.toLowerCase()}`} className="group relative overflow-hidden rounded-2xl aspect-square bg-card border border-border hover:border-primary/50 transition-all shadow-sm hover:shadow-md">
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10"></div>
-                <div className="absolute bottom-0 left-0 p-4 sm:p-6 z-20 w-full">
-                  <h3 className="text-white font-bold text-lg sm:text-xl group-hover:text-primary transition-colors">{cat}</h3>
-                </div>
-                {/* Placeholder block until we have actual images */}
-                <div className="absolute inset-0 bg-muted flex items-center justify-center group-hover:scale-105 transition-transform duration-500">
-                  <span className="text-muted-foreground/30 font-bold text-4xl">{i+1}</span>
-                </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5">
+            {categories.map(({ name, slug, Icon, img }) => (
+              <Link
+                key={name}
+                href={`/catalog?category=${slug}`}
+                className="group relative overflow-hidden rounded-2xl aspect-square hover:shadow-xl hover:scale-[1.02] transition-all duration-300"
+              >
+                {img ? (
+                  <>
+                    <Image
+                      src={img}
+                      alt={name}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent" />
+                    <span className="absolute bottom-4 left-0 right-0 text-center font-bold text-sm text-white tracking-wide">
+                      {name}
+                    </span>
+                  </>
+                ) : (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-muted">
+                    <Icon className="w-10 h-10 text-muted-foreground group-hover:text-primary group-hover:scale-110 transition-all duration-300" />
+                    <span className="font-semibold text-sm">{name}</span>
+                  </div>
+                )}
               </Link>
             ))}
           </div>
         </div>
       </section>
+
+      {/* ── Features ──────────────────────────────────────────── */}
+      <section className="relative py-20 bg-muted">
+        <div className="pointer-events-none absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-background to-transparent" />
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <p className="text-xs font-semibold tracking-widest uppercase text-muted-foreground mb-2">Por qué elegirnos</p>
+            <h2 className="text-3xl font-bold">Tu mascota merece lo mejor</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {features.map(({ Icon, title, desc }) => (
+              <div
+                key={title}
+                className="group flex flex-col items-center text-center p-8 rounded-2xl bg-card border border-border/60 shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+              >
+                <div className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center mb-5 text-primary-foreground shadow-sm group-hover:scale-110 transition-transform duration-300">
+                  <Icon className="w-6 h-6" />
+                </div>
+                <h3 className="font-bold text-base mb-2">{title}</h3>
+                <p className="text-muted-foreground text-sm leading-relaxed">{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
     </div>
   );
 }

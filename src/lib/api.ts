@@ -1,77 +1,82 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 export async function fetchApi(endpoint: string, options: RequestInit = {}) {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
-  
   const headers = new Headers(options.headers);
   headers.set('Content-Type', 'application/json');
-  
-  if (token) {
-    headers.set('Authorization', `Bearer ${token}`);
-  }
 
+  // El access_token viaja como cookie HttpOnly (se envía automáticamente con credentials: 'include')
   let response = await fetch(`${API_URL}${endpoint}`, {
     ...options,
     headers,
+    credentials: 'include',
   });
 
-  // Si da error 401 (Unauthorized) e intentamos pegarle a un endpoint que NO es el refresh ni login
+  // Si da 401 e intentamos pegar a un endpoint que NO es el refresh ni login, renovamos el token
   if (response.status === 401 && endpoint !== '/auth/refresh' && endpoint !== '/auth/login') {
     const refreshToken = typeof window !== 'undefined' ? localStorage.getItem('refreshToken') : null;
-    
+
     if (refreshToken) {
       try {
-        // Intentar renovar el token
         const refreshResponse = await fetch(`${API_URL}/auth/refresh`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ refreshToken }),
+          credentials: 'include', // el nuevo access_token llega como cookie
         });
 
         if (refreshResponse.ok) {
           const refreshData = await refreshResponse.json();
-          // Guardar nuevos tokens
-          localStorage.setItem('accessToken', refreshData.accessToken);
           localStorage.setItem('refreshToken', refreshData.refreshToken);
 
-          // Actualizar el header de la petición original y reintentarla
-          headers.set('Authorization', `Bearer ${refreshData.accessToken}`);
+          // Reintentar la petición original (ahora con la nueva cookie seteada)
           response = await fetch(`${API_URL}${endpoint}`, {
             ...options,
             headers,
+            credentials: 'include',
           });
         } else {
-          // Si el refresh falló (ej: expiró), limpiamos todo
-          localStorage.removeItem('accessToken');
           localStorage.removeItem('refreshToken');
+          if (typeof window !== 'undefined') window.location.href = '/login';
         }
-      } catch (err) {
-        localStorage.removeItem('accessToken');
+      } catch {
         localStorage.removeItem('refreshToken');
+        if (typeof window !== 'undefined') window.location.href = '/login';
       }
     } else {
-      localStorage.removeItem('accessToken');
+      if (typeof window !== 'undefined') window.location.href = '/login';
     }
   }
 
   if (!response.ok) {
-    // Intentamos extraer el mensaje de error del backend
     let errorMessage = 'Error en la solicitud';
     try {
       const errorData = await response.json();
       if (errorData.message) {
         errorMessage = Array.isArray(errorData.message) ? errorData.message.join(', ') : errorData.message;
       }
-    } catch (e) {
+    } catch {
       // Si no es JSON, mantenemos el mensaje default
     }
     throw new Error(errorMessage);
   }
 
-  // Si es un 204 No Content, no intentamos parsear JSON
   if (response.status === 204) {
     return null;
   }
 
   return response.json();
+}
+
+export async function logout() {
+  try {
+    await fetch(`${API_URL}/auth/logout`, {
+      method: 'POST',
+      credentials: 'include',
+    });
+  } catch {
+    // ignorar errores de red — igual limpiamos localmente
+  } finally {
+    localStorage.removeItem('refreshToken');
+    window.location.href = '/login';
+  }
 }

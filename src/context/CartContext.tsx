@@ -31,21 +31,22 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   // Load from localStorage on mount
   useEffect(() => {
-    const savedCart = localStorage.getItem("virtualpet_cart");
-    if (savedCart) {
-      try {
-        setItems(JSON.parse(savedCart));
-      } catch (e) {
-        console.error("Failed to parse cart from localStorage");
-      }
+    try {
+      const savedCart = localStorage.getItem("virtualpet_cart");
+      if (savedCart) setItems(JSON.parse(savedCart));
+    } catch {
+      // localStorage blocked (iOS private mode / strict privacy settings)
     }
     setIsLoaded(true);
   }, []);
 
   // Save to localStorage whenever items change
   useEffect(() => {
-    if (isLoaded) {
+    if (!isLoaded) return;
+    try {
       localStorage.setItem("virtualpet_cart", JSON.stringify(items));
+    } catch {
+      // localStorage blocked
     }
   }, [items, isLoaded]);
 

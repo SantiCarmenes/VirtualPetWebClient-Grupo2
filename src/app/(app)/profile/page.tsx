@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { User, MapPin, CreditCard, Package, LogOut, ChevronRight, X } from "lucide-react";
+import { logout } from "@/lib/api";
 
 type Tab = "datos" | "direcciones" | "pagos" | "pedidos";
 type ModalType = "datos" | "direccion" | "pago" | null;
@@ -82,10 +83,13 @@ export default function ProfilePage() {
           </button>
 
           <div className="pt-4 mt-4 border-t border-border">
-            <Link href="/login" className="w-full flex items-center gap-3 px-4 py-3 text-red-500 hover:bg-red-500/10 font-medium rounded-xl transition-all">
+            <button
+              onClick={logout}
+              className="w-full flex items-center gap-3 px-4 py-3 text-red-500 hover:bg-red-500/10 font-medium rounded-xl transition-all"
+            >
               <LogOut className="w-5 h-5" />
               Cerrar Sesión
-            </Link>
+            </button>
           </div>
         </div>
 

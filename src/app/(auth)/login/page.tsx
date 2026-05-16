@@ -24,8 +24,7 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password })
       });
       
-      // Guardar los tokens en local storage
-      localStorage.setItem('accessToken', data.accessToken);
+      // El access token llega como cookie HttpOnly (el browser la guarda automáticamente)
       localStorage.setItem('refreshToken', data.refreshToken);
       
       // Redirigir al perfil
@@ -85,9 +84,9 @@ export default function LoginPage() {
                 <label className="text-sm font-medium leading-none">
                   Contraseña
                 </label>
-                <a href="#" className="text-sm font-medium text-primary hover:text-primary-hover transition-colors">
+                <Link href="/forgot-password" className="text-sm font-medium text-primary hover:text-primary-hover transition-colors">
                   ¿Olvidaste tu contraseña?
-                </a>
+                </Link>
               </div>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />

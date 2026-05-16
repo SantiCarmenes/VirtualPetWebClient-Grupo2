@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Virtual Pet MDQ | Tu tienda de mascotas digital",
+  title: "Virtual Pet | Tu tienda de mascotas digital",
   description: "Virtual Pet nunca defraudará a su mascota. Alimentos, accesorios y más para tus mascotas con envío en Mar del Plata.",
 };
 

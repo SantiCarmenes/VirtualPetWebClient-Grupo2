@@ -2,56 +2,59 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* =====================================================
+   Para cambiar colores: editar solo esta sección.
+   ===================================================== */
 :root {
-  --background: #fdfdfc; /* Off-white, menos brillante */
-  --foreground: #334155; /* Slate 700, gris oscuro en lugar de casi negro */
-  
-  --primary: #fb923c; /* Naranja pastel (Orange 400) */
-  --primary-hover: #f97316; /* Orange 500 */
-  --primary-foreground: #ffffff;
+  --background: #FAFAF9;
+  --foreground: #1C1917;
 
-  --secondary: #2dd4bf; /* Teal pastel (Teal 400) */
-  --secondary-hover: #14b8a6; /* Teal 500 */
-  --secondary-foreground: #ffffff;
+  --primary: #1C1917;
+  --primary-hover: #292524;
+  --primary-foreground: #FAFAF9;
 
-  --accent: #f1f5f9; /* Slate 100 */
-  --accent-foreground: #334155;
+  --secondary: #E7E5E4;
+  --secondary-hover: #D6D3D1;
+  --secondary-foreground: #1C1917;
 
-  --muted: #e2e8f0; /* Slate 200 */
-  --muted-foreground: #64748b; /* Slate 500 */
+  --accent: #F5F5F4;
+  --accent-foreground: #1C1917;
 
-  --border: #cbd5e1; /* Slate 300 */
-  
-  --card: #ffffff;
-  --card-foreground: #334155;
-  
-  --ring: #fb923c;
+  --muted: #F5F5F4;
+  --muted-foreground: #78716C;
+
+  --border: #E7E5E4;
+
+  --card: #FFFFFF;
+  --card-foreground: #1C1917;
+
+  --ring: #A8A29E;
 }
 
 :root[class~="dark"] {
-  --background: #1e293b; /* Slate 800, gris oscuro suave, no negro */
-  --foreground: #f8fafc;
-  
-  --primary: #fb923c; /* Naranja pastel */
-  --primary-hover: #fdba74; /* Orange 300 para hover oscuro */
-  --primary-foreground: #0f172a;
+  --background: #0C0A09;
+  --foreground: #FAFAF9;
 
-  --secondary: #2dd4bf; /* Teal pastel */
-  --secondary-hover: #5eead4; /* Teal 300 para hover oscuro */
-  --secondary-foreground: #0f172a;
+  --primary: #E7E5E4;
+  --primary-hover: #D6D3D1;
+  --primary-foreground: #1C1917;
 
-  --accent: #334155; /* Slate 700 */
-  --accent-foreground: #f8fafc;
+  --secondary: #2C2824;
+  --secondary-hover: #3D3733;
+  --secondary-foreground: #E7E5E4;
 
-  --muted: #334155; /* Slate 700 */
-  --muted-foreground: #94a3b8; /* Slate 400 */
+  --accent: #131110;
+  --accent-foreground: #A8A29E;
 
-  --border: #475569; /* Slate 600 */
-  
-  --card: #0f172a; /* Slate 900 para contraste sutil con el fondo 800 */
-  --card-foreground: #f8fafc;
-  
-  --ring: #fb923c;
+  --muted: #131110;
+  --muted-foreground: #78716C;
+
+  --border: #2C2824;
+
+  --card: #1E1A17;
+  --card-foreground: #FAFAF9;
+
+  --ring: #78716C;
 }
 
 @theme {
@@ -84,17 +87,21 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+button, a, [role="button"], input, select, label {
+  touch-action: manipulation;
+}
+
 /* Glassmorphism utilities */
 .glass {
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.75);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(231, 229, 228, 0.6);
 }
 
 :root[class~="dark"] .glass {
-  background: rgba(15, 23, 42, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(28, 25, 23, 0.82);
+  border: 1px solid rgba(41, 37, 36, 0.7);
 }
 
 /* Smooth transitions */
@@ -120,4 +127,13 @@ body {
 
 .animate-slide-in-right {
   animation: slide-in-right 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-14px); }
+}
+
+.animate-float {
+  animation: float 5s ease-in-out infinite;
 }
