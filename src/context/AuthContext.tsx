@@ -15,7 +15,6 @@ interface AuthContextType {
   register: (
     firstName: string,
     lastName: string,
-    username: string,
     email: string,
     password: string
   ) => Promise<void>;
@@ -38,10 +37,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    * fetchApi ya maneja el refresh automático de token.
    */
   const loadUser = useCallback(async () => {
-    const hasRefreshToken =
-      typeof window !== "undefined" && !!localStorage.getItem("refreshToken");
+    const hasToken =
+      typeof window !== "undefined" &&
+      (!!localStorage.getItem("accessToken") || !!localStorage.getItem("refreshToken"));
 
-    if (!hasRefreshToken) {
+    if (!hasToken) {
       setIsLoading(false);
       return;
     }
@@ -50,7 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const me = await getMe();
       setUser(me);
     } catch {
-      // Si después del retry automático sigue fallando → limpiar sesión
+      localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
       setUser(null);
     } finally {
@@ -74,11 +74,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const register = async (
     firstName: string,
     lastName: string,
-    username: string,
     email: string,
     password: string
   ) => {
-    await authService.register(firstName, lastName, username, email, password);
+    await authService.register(firstName, lastName, email, password);
     const me = await getMe();
     setUser(me);
   };

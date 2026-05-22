@@ -10,11 +10,16 @@ export interface User {
   email: string;
   firstName: string;
   lastName: string;
-  username: string;
-  role: 'USER' | 'BACKOFFICE';
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
+}
+
+export interface Address {
+  id: string;
+  userId: string;
+  street: string;
+  city: string;
+  province: string;
+  postalCode: string;
+  isDefault: boolean;
 }
 
 // ─── Catálogo ────────────────────────────────────────────────
@@ -85,8 +90,7 @@ export interface Category {
   slug: string;
   description?: string;
   imageUrl?: string;
-  active: boolean;
-  createdAt: string;
+  parentId?: string | null;
 }
 
 export interface Product {
@@ -116,9 +120,21 @@ export interface Pagination {
   totalPages: number;
 }
 
+export interface OrdersResponse {
+  data: Order[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+// El backend devuelve los campos de paginación al nivel raíz (no anidados)
 export interface ProductsResponse {
   data: Product[];
-  pagination: Pagination;
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
 }
 
 // ─── Carrito ─────────────────────────────────────────────────
@@ -127,17 +143,19 @@ export interface CartItem {
   id: string;
   variantId: string;
   quantity: number;
-  variant: {
+  variant?: {
     id: string;
     sku: string;
     price: number;
     images: VariantImage[];
+    variantAttributes?: { attributeValue: { value: string } }[];
     product: {
       id: string;
       name: string;
       slug: string;
+      images?: VariantImage[];
     };
-  };
+  } | null;
 }
 
 export interface Cart {
@@ -151,10 +169,11 @@ export interface Cart {
 // ─── Órdenes ─────────────────────────────────────────────────
 
 export type OrderStatus =
-  | 'PENDING'
-  | 'CONFIRMED'
-  | 'SHIPPED'
+  | 'RECEIVED'
+  | 'IN_PREPARATION'
+  | 'IN_TRANSIT'
   | 'DELIVERED'
+  | 'NOT_DELIVERED'
   | 'CANCELLED';
 
 export interface ShippingAddress {
@@ -192,8 +211,12 @@ export interface Order {
   discountTotal: number;
   discount: number;
   total: number;
+  deliveryAttempts: number;
+  nextDeliveryAt?: string | null;
   createdAt: string;
   updatedAt: string;
+  payment?: Payment | null;
+  shipment?: Shipment | null;
 }
 
 // ─── Pago ────────────────────────────────────────────────────

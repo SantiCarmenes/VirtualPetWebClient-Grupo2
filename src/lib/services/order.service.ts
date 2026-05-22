@@ -1,6 +1,7 @@
 import { fetchApi } from '@/lib/api';
 import type {
   Order,
+  OrdersResponse,
   ShippingAddress,
   PaymentMethod,
   CheckoutResponse,
@@ -14,10 +15,22 @@ export interface CreateOrderParams {
   paymentMethodCode?: PaymentMethod;
 }
 
+export interface GuestCartItem {
+  variantId: string;
+  quantity: number;
+}
+
+export interface GuestCheckoutParams {
+  customerEmail: string;
+  customerName: string;
+  shippingAddress: ShippingAddress;
+  shippingMethodId?: string;
+  paymentMethodCode: PaymentMethod;
+  items: GuestCartItem[];
+}
+
 /**
- * Crea una nueva orden a partir del carrito activo.
- * Retorna { order, payment, paymentUrl? }.
- * Si paymentUrl está presente → redirigir al gateway (futuro).
+ * Crea una orden para usuario autenticado (lee el carrito desde el servidor).
  */
 export async function createOrder(
   params: CreateOrderParams
@@ -29,10 +42,29 @@ export async function createOrder(
 }
 
 /**
- * Obtiene todas las órdenes del usuario autenticado.
+ * Crea una orden para invitado (sin sesión). Envía los items en el body.
  */
-export async function getMyOrders(): Promise<Order[]> {
-  return fetchApi('/orders');
+export async function guestCheckout(
+  params: GuestCheckoutParams
+): Promise<CheckoutResponse> {
+  return fetchApi('/orders/guest', {
+    method: 'POST',
+    body: JSON.stringify(params),
+  });
+}
+
+/**
+ * Obtiene las órdenes del usuario autenticado (paginadas).
+ */
+export async function getMyOrders(page = 1, limit = 5): Promise<OrdersResponse> {
+  return fetchApi(`/orders?page=${page}&limit=${limit}`);
+}
+
+/**
+ * Obtiene todas las órdenes (backoffice, paginadas).
+ */
+export async function getAllOrders(page = 1, limit = 20): Promise<OrdersResponse> {
+  return fetchApi(`/orders/all?page=${page}&limit=${limit}`);
 }
 
 /**
@@ -40,4 +72,11 @@ export async function getMyOrders(): Promise<Order[]> {
  */
 export async function getOrderById(id: string): Promise<Order> {
   return fetchApi(`/orders/${id}`);
+}
+
+/**
+ * Obtiene el seguimiento de una orden sin autenticación (endpoint público).
+ */
+export async function trackOrder(id: string): Promise<Order> {
+  return fetchApi(`/orders/${id}/track`, { skipAuth: true });
 }

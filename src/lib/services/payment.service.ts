@@ -16,3 +16,14 @@ export async function getPaymentMethods(): Promise<PaymentMethodOption[]> {
 export async function getPaymentByOrder(orderId: string): Promise<Payment> {
   return fetchApi(`/payment/orders/${orderId}`);
 }
+
+export async function simulateWebhook(
+  orderId: string,
+  result: 'approved' | 'rejected',
+): Promise<void> {
+  return fetchApi(`/orders/${orderId}/payment-webhook`, {
+    method: 'POST',
+    body: JSON.stringify({ result }),
+    skipAuth: true,
+  });
+}

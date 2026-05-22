@@ -4,32 +4,35 @@ import type { Product, ProductsResponse, Category, Attribute } from '@/lib/types
 export interface GetProductsParams {
   page?: number;
   limit?: number;
-  /** UUID de la categoría (no el slug) */
-  categoryId?: string;
+  categoryIds?: string;
   search?: string;
-  /** UUIDs de attributeValues separados por coma */
   attributeValueIds?: string;
   minPrice?: number;
   maxPrice?: number;
   sort?: 'menor' | 'mayor' | 'destacados';
 }
 
-/**
- * Obtiene el listado paginado de productos con filtros opcionales.
- */
 export async function getProducts(
   params: GetProductsParams = {}
 ): Promise<ProductsResponse> {
   const query = new URLSearchParams();
 
-  if (params.page)               query.set('page',              String(params.page));
-  if (params.limit)              query.set('limit',             String(params.limit));
-  if (params.categoryId)         query.set('categoryId',        params.categoryId);
-  if (params.search)             query.set('search',            params.search);
-  if (params.attributeValueIds)  query.set('attributeValueIds', params.attributeValueIds);
+  if (params.page)  query.set('page',   String(params.page));
+  if (params.limit) query.set('limit',  String(params.limit));
+  if (params.search) query.set('search', params.search);
   if (params.minPrice !== undefined) query.set('minPrice', String(params.minPrice));
   if (params.maxPrice !== undefined) query.set('maxPrice', String(params.maxPrice));
-  if (params.sort)               query.set('sort',              params.sort);
+  if (params.sort)  query.set('sort',   params.sort);
+
+  // Mandar IDs como params repetidos (?categoryIds=a&categoryIds=b) en vez de
+  // coma-separados, para que Express los parsee como array nativo y no depender
+  // del @Transform de class-transformer en el backend.
+  if (params.categoryIds) {
+    params.categoryIds.split(',').forEach((id) => query.append('categoryIds', id));
+  }
+  if (params.attributeValueIds) {
+    params.attributeValueIds.split(',').forEach((id) => query.append('attributeValueIds', id));
+  }
 
   const qs = query.toString();
   return fetchApi(`/catalog/products${qs ? `?${qs}` : ''}`);
@@ -55,4 +58,16 @@ export async function getCategories(): Promise<Category[]> {
 export async function getAttributes(filterable?: boolean): Promise<Attribute[]> {
   const qs = filterable !== undefined ? `?filterable=${filterable}` : '';
   return fetchApi(`/catalog/attributes${qs}`);
+}
+
+/**
+ * Devuelve el stock disponible de una variante. Retorna 0 si falla.
+ */
+export async function getStockByVariantId(variantId: string): Promise<number> {
+  try {
+    const data = await fetchApi(`/stock/variants/${variantId}`);
+    return (data?.quantityAvailable as number) ?? 0;
+  } catch {
+    return 0;
+  }
 }

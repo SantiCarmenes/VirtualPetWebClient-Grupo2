@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getOrderById } from "@/lib/services/order.service";
+import { getOrderById, trackOrder } from "@/lib/services/order.service";
 import type { Order } from "@/lib/types";
 
 interface UseOrderResult {
@@ -8,7 +8,7 @@ interface UseOrderResult {
   error: string | null;
 }
 
-export function useOrder(id: string): UseOrderResult {
+export function useOrder(id: string, { isPublic = false } = {}): UseOrderResult {
   const [order, setOrder]         = useState<Order | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError]         = useState<string | null>(null);
@@ -20,7 +20,8 @@ export function useOrder(id: string): UseOrderResult {
     setIsLoading(true);
     setError(null);
 
-    getOrderById(id)
+    const fetcher = isPublic ? trackOrder : getOrderById;
+    fetcher(id)
       .then((data) => { if (!cancelled) setOrder(data); })
       .catch((err: unknown) => {
         if (!cancelled)
@@ -29,7 +30,7 @@ export function useOrder(id: string): UseOrderResult {
       .finally(() => { if (!cancelled) setIsLoading(false); });
 
     return () => { cancelled = true; };
-  }, [id]);
+  }, [id, isPublic]);
 
   return { order, isLoading, error };
 }

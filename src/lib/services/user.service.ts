@@ -15,7 +15,6 @@ export async function getMe(): Promise<User> {
 export async function updateMe(data: {
   firstName?: string;
   lastName?: string;
-  username?: string;
 }): Promise<User> {
   return fetchApi('/users/me', {
     method: 'PATCH',

@@ -49,35 +49,40 @@ export function CartSlideOver() {
                   ¡Descubrí nuestros productos y empezá a comprar!
                 </p>
               </div>
-              <button
+              <Link
+                href="/catalog"
                 onClick={() => setIsCartOpen(false)}
                 className="mt-4 px-6 py-2 bg-primary/10 text-primary font-bold rounded-full hover:bg-primary hover:text-primary-foreground transition-colors"
               >
                 Ir al catálogo
-              </button>
+              </Link>
             </div>
           ) : (
             <ul className="space-y-6">
               {items.map((item) => {
-                const imageUrl = item.variant?.images?.[0]?.url ?? null;
+                const imageUrl = item.variant?.images?.[0]?.url ?? item.variant?.product?.images?.[0]?.url ?? null;
                 const productName = item.variant?.product?.name ?? "Producto";
-                const sku = item.variant?.sku;
                 const price = item.variant?.price ?? 0;
+                const attrValues = item.variant?.variantAttributes
+                  ?.map((va) => va.attributeValue.value)
+                  .join(", ");
 
                 return (
                   <li key={item.id} className="flex gap-4">
                     {/* Imagen */}
-                    <div className="w-20 h-20 rounded-xl bg-muted shrink-0 border border-border overflow-hidden flex items-center justify-center">
+                    <div className="w-20 h-20 rounded-xl bg-muted shrink-0 border border-border overflow-hidden relative">
                       {imageUrl ? (
                         <Image
                           src={imageUrl}
                           alt={productName}
-                          width={80}
-                          height={80}
-                          className="object-cover w-full h-full"
+                          fill
+                          sizes="80px"
+                          className="object-cover"
                         />
                       ) : (
-                        <ShoppingBag className="w-8 h-8 text-muted-foreground opacity-40" />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <ShoppingBag className="w-8 h-8 text-muted-foreground opacity-40" />
+                        </div>
                       )}
                     </div>
 
@@ -96,10 +101,8 @@ export function CartSlideOver() {
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
-                        {sku && (
-                          <p className="text-xs text-muted-foreground mt-1">
-                            SKU: {sku}
-                          </p>
+                        {attrValues && (
+                          <p className="text-xs text-muted-foreground mt-0.5">{attrValues}</p>
                         )}
                       </div>
 

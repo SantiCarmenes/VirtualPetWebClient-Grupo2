@@ -1,52 +1,30 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { ArrowLeft, Mail, Lock, AlertCircle } from "lucide-react";
+import { ArrowLeft, Mail, Lock, AlertCircle, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
-import { useAuth } from "@/context/AuthContext";
-import { useCart } from "@/context/CartContext";
+import { useLogin } from "@/hooks/useAuthForms";
 
 export default function LoginPage() {
-  const router = useRouter();
-  const { login } = useAuth();
-  const { syncCart } = useCart();
+  const { isLoading, error, submit } = useLogin();
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail]             = useState("");
+  const [password, setPassword]       = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-    setIsLoading(true);
-
-    try {
-      await login(email, password);
-      // Sincronizar carrito con el del usuario recién autenticado
-      await syncCart();
-      router.push("/catalog");
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Error al iniciar sesión. Verificá tus credenciales.";
-      setError(msg);
-    } finally {
-      setIsLoading(false);
-    }
+    submit(email, password);
   };
 
   return (
     <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-muted/30 p-4 animate-in fade-in duration-500">
       <div className="w-full max-w-md bg-card rounded-3xl shadow-xl border border-border p-8 relative overflow-hidden">
-        {/* Decorative background element */}
-        <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-48 h-48 bg-primary/10 rounded-full blur-2xl"></div>
-        <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/2 w-48 h-48 bg-secondary/10 rounded-full blur-2xl"></div>
+        <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-48 h-48 bg-primary/10 rounded-full blur-2xl" />
+        <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/2 w-48 h-48 bg-secondary/10 rounded-full blur-2xl" />
 
         <div className="relative z-10">
-          <Link
-            href="/catalog"
-            className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors mb-8"
-          >
+          <Link href="/catalog" className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors mb-8">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Volver a la tienda
           </Link>
@@ -56,7 +34,7 @@ export default function LoginPage() {
             <p className="text-muted-foreground">Ingresá a tu cuenta de Virtual Pet</p>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
               <div className="bg-red-500/10 border border-red-500/20 text-red-500 text-sm p-3 rounded-xl flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 shrink-0" />
@@ -65,9 +43,7 @@ export default function LoginPage() {
             )}
 
             <div className="space-y-2">
-              <label htmlFor="login-email" className="text-sm font-medium leading-none">
-                Correo Electrónico
-              </label>
+              <label htmlFor="login-email" className="text-sm font-medium leading-none">Correo Electrónico</label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
@@ -84,13 +60,8 @@ export default function LoginPage() {
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label htmlFor="login-password" className="text-sm font-medium leading-none">
-                  Contraseña
-                </label>
-                <Link
-                  href="/forgot-password"
-                  className="text-sm font-medium text-primary hover:text-primary-hover transition-colors"
-                >
+                <label htmlFor="login-password" className="text-sm font-medium leading-none">Contraseña</label>
+                <Link href="/forgot-password" className="text-sm font-medium text-primary hover:text-primary-hover transition-colors">
                   ¿Olvidaste tu contraseña?
                 </Link>
               </div>
@@ -98,13 +69,21 @@ export default function LoginPage() {
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
                   id="login-password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-border bg-background focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
+                  className="w-full pl-10 pr-10 py-3 rounded-xl border border-border bg-background focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
                   required
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
               </div>
             </div>
 
@@ -112,7 +91,6 @@ export default function LoginPage() {
               id="login-submit"
               type="submit"
               disabled={isLoading}
-              aria-disabled={isLoading}
               className="w-full py-3 px-4 bg-primary text-primary-foreground font-bold rounded-xl hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/30 transition-all mt-6 disabled:opacity-70 disabled:cursor-not-allowed"
             >
               {isLoading ? "Iniciando..." : "Iniciar Sesión"}

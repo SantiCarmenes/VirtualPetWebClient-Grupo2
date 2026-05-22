@@ -47,31 +47,27 @@ export function Navbar() {
               <Image
                 src="/logo-nav-light.png"
                 alt="Virtual Pet"
-                width={220}
-                height={64}
-                style={{ width: "auto", height: "32px" }}
-                className="object-contain dark:hidden"
+                width={0}
+                height={0}
+                sizes="220px"
+                style={{ height: "32px", width: "auto" }}
+                className="dark:hidden"
                 priority
               />
               <Image
                 src="/logo-nav-dark.png"
                 alt="Virtual Pet"
-                width={220}
-                height={64}
-                style={{ width: "auto", height: "32px" }}
-                className="object-contain hidden dark:block"
+                width={0}
+                height={0}
+                sizes="220px"
+                style={{ height: "32px", width: "auto" }}
+                className="hidden dark:block"
                 priority
               />
             </Link>
             <div className="hidden md:flex items-center gap-6 text-sm font-medium">
               <Link href="/catalog" className="text-foreground/80 hover:text-primary transition-colors">
                 Catálogo
-              </Link>
-              <Link href="/promotions" className="text-foreground/80 hover:text-primary transition-colors">
-                Promociones
-              </Link>
-              <Link href="/about" className="text-foreground/80 hover:text-primary transition-colors">
-                Nosotros
               </Link>
             </div>
           </div>
@@ -97,8 +93,7 @@ export function Navbar() {
 
             {/* Usuario */}
             {isLoading ? (
-              // Skeleton mientras carga el usuario
-              <div className="w-9 h-9 rounded-full bg-muted animate-pulse" />
+              <Link href="/profile" className="w-9 h-9 rounded-full bg-muted animate-pulse" />
             ) : isAuthenticated && user ? (
               <div className="flex items-center gap-2">
                 {/* Avatar con iniciales → link a /profile */}

@@ -1,21 +1,38 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Truck, ShieldCheck, Clock, Bone, Gamepad2, Scissors, Package } from "lucide-react";
+import type { Category } from "@/lib/types";
 
-const categories = [
-  { name: "Alimentos",  slug: "alimentos",  Icon: Bone,     img: "/alimentos.png" },
-  { name: "Juguetes",   slug: "juguetes",   Icon: Gamepad2, img: "/juguetes.png" },
-  { name: "Accesorios", slug: "accesorios", Icon: Package,  img: "/accesorios.png" },
-  { name: "Higiene",    slug: "higiene",    Icon: Scissors, img: "/higienesalud.png" },
-];
+const FALLBACK_ICONS: Record<string, React.ElementType> = {
+  alimentos:  Bone,
+  juguetes:   Gamepad2,
+  accesorios: Package,
+  higiene:    Scissors,
+};
 
 const features = [
-  { Icon: Truck,       title: "Envío Rápido",  desc: "Entregas en el día con nuestra flota propia en MDQ." },
+  { Icon: Truck,       title: "Envío Rápido",  desc: "Entregas con nuestra flota a toda Mar del Plata." },
   { Icon: ShieldCheck, title: "Compra Segura", desc: "Tus pagos y datos están protegidos en cada transacción." },
   { Icon: Clock,       title: "Soporte 24/7",  desc: "Estamos siempre disponibles para vos y tu mascota." },
 ];
 
-export default function Home() {
+async function getCategories(): Promise<Category[]> {
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/catalog/categories`,
+      { next: { revalidate: 300 } }
+    );
+    if (!res.ok) return [];
+    const data: Category[] = await res.json();
+    return data;
+  } catch {
+    return [];
+  }
+}
+
+export default async function Home() {
+  const categories = await getCategories();
+
   return (
     <div className="flex flex-col">
 
@@ -31,7 +48,7 @@ export default function Home() {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-foreground opacity-50" />
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-primary-foreground" />
                 </span>
-                Envío gratis en MDQ
+                Envíos a todo MDQ
               </span>
 
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.08]">
@@ -44,7 +61,8 @@ export default function Home() {
               </h1>
 
               <p className="text-muted-foreground text-lg leading-relaxed max-w-[420px]">
-                Descubrí el catálogo más completo de alimentos, accesorios y juguetes para tus mascotas. Con envío en el día en MDQ.
+                Descubrí el catálogo más completo de alimentos, accesorios y juguetes para tus mascotas.{" "}
+                <span className="font-semibold text-foreground">Virtual Pet nunca defraudará a su mascota.</span>
               </p>
 
               <div className="flex flex-wrap gap-3 pt-1">
@@ -55,38 +73,18 @@ export default function Home() {
                   Ver Catálogo
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                 </Link>
-                <Link
-                  href="/promotions"
-                  className="inline-flex items-center px-7 py-3.5 rounded-full border border-border bg-background font-semibold text-sm hover:bg-muted transition-all"
-                >
-                  Promociones
-                </Link>
               </div>
             </div>
 
             {/* logo */}
             <div className="hidden lg:flex items-center justify-center lg:justify-end">
               <div className="animate-float relative w-80 h-80 md:w-[440px] md:h-[440px]">
-                <Image
-                  src="/logo-light.png"
-                  alt="Virtual Pet"
-                  fill
-                  className="object-contain drop-shadow-2xl dark:hidden"
-                  priority
-                />
-                <Image
-                  src="/logo-darky.png"
-                  alt="Virtual Pet"
-                  fill
-                  className="object-contain hidden dark:block"
-                  priority
-                />
+                <Image src="/logo-light.png" alt="Virtual Pet" fill sizes="(max-width: 1024px) 0px, 440px" className="object-contain drop-shadow-2xl dark:hidden" priority />
+                <Image src="/logo-darky.png" alt="Virtual Pet" fill sizes="(max-width: 1024px) 0px, 440px" className="object-contain hidden dark:block" priority />
               </div>
             </div>
-
           </div>
         </div>
-
         <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-b from-transparent to-background" />
       </section>
 
@@ -98,43 +96,65 @@ export default function Home() {
               <p className="text-xs font-semibold tracking-widest uppercase text-muted-foreground mb-1">Explorá</p>
               <h2 className="text-3xl font-bold">Categorías</h2>
             </div>
-            <Link
-              href="/catalog"
-              className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
-            >
+            <Link href="/catalog" className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
               Ver todas <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5">
-            {categories.map(({ name, slug, Icon, img }) => (
-              <Link
-                key={name}
-                href={`/catalog?category=${slug}`}
-                className="group relative overflow-hidden rounded-2xl aspect-square hover:shadow-xl hover:scale-[1.02] transition-all duration-300"
-              >
-                {img ? (
-                  <>
-                    <Image
-                      src={img}
-                      alt={name}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent" />
-                    <span className="absolute bottom-4 left-0 right-0 text-center font-bold text-sm text-white tracking-wide">
-                      {name}
-                    </span>
-                  </>
-                ) : (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-muted">
-                    <Icon className="w-10 h-10 text-muted-foreground group-hover:text-primary group-hover:scale-110 transition-all duration-300" />
-                    <span className="font-semibold text-sm">{name}</span>
-                  </div>
-                )}
-              </Link>
-            ))}
-          </div>
+          {categories.length > 0 ? (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5">
+              {categories.map((cat) => {
+                const FallbackIcon = FALLBACK_ICONS[cat.slug] ?? Package;
+                return (
+                  <Link
+                    key={cat.id}
+                    href={`/catalog?categories=${cat.slug}`}
+                    className="group relative overflow-hidden rounded-2xl aspect-square hover:shadow-xl hover:scale-[1.02] transition-all duration-300"
+                  >
+                    {cat.imageUrl ? (
+                      <>
+                        <Image
+                          src={cat.imageUrl}
+                          alt={cat.name}
+                          fill
+                          sizes="(max-width: 768px) 50vw, 25vw"
+                          className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent" />
+                        <span className="absolute bottom-4 left-0 right-0 text-center font-bold text-sm text-white tracking-wide">
+                          {cat.name}
+                        </span>
+                      </>
+                    ) : (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-muted">
+                        <FallbackIcon className="w-10 h-10 text-muted-foreground group-hover:text-primary group-hover:scale-110 transition-all duration-300" />
+                        <span className="font-semibold text-sm">{cat.name}</span>
+                      </div>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5">
+              {[
+                { name: "Alimentos",  slug: "alimentos",  img: "/alimentos.png" },
+                { name: "Juguetes",   slug: "juguetes",   img: "/juguetes.png" },
+                { name: "Accesorios", slug: "accesorios", img: "/accesorios.png" },
+                { name: "Higiene",    slug: "higiene",    img: "/higienesalud.png" },
+              ].map(({ name, slug, img }) => (
+                <Link
+                  key={slug}
+                  href={`/catalog?categories=${slug}`}
+                  className="group relative overflow-hidden rounded-2xl aspect-square hover:shadow-xl hover:scale-[1.02] transition-all duration-300"
+                >
+                  <Image src={img} alt={name} fill sizes="(max-width: 768px) 50vw, 25vw" className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent" />
+                  <span className="absolute bottom-4 left-0 right-0 text-center font-bold text-sm text-white tracking-wide">{name}</span>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

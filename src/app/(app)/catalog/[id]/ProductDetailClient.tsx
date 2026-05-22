@@ -1,16 +1,23 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
   ArrowLeft, ShoppingCart, Check,
-  ShieldCheck, Truck, ShoppingBag, Minus, Plus
+  ShieldCheck, Truck, ShoppingBag, Minus, Plus, Package
 } from "lucide-react";
 import type { Product, Variant } from "@/lib/types";
 import { useCart } from "@/context/CartContext";
+import type { CartItemMeta } from "@/context/CartContext";
 
-export function ProductDetailClient({ product }: { product: Product }) {
+export function ProductDetailClient({
+  product,
+  stockMap,
+}: {
+  product: Product;
+  stockMap: Record<string, number>;
+}) {
   const { addItem } = useCart();
 
   const activeVariants = product.variants.filter((v) => v.active);
@@ -19,6 +26,9 @@ export function ProductDetailClient({ product }: { product: Product }) {
   );
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded]       = useState(false);
+
+  const availableStock =
+    selectedVariant != null ? (stockMap[selectedVariant.id] ?? 0) : null;
 
   // ── Imagen reactiva ───────────────────────────────────────────────────────
   const displayImage =
@@ -35,17 +45,37 @@ export function ProductDetailClient({ product }: { product: Product }) {
 
   // ── Agregar al carrito ────────────────────────────────────────────────────
   const handleAddToCart = () => {
-    if (!selectedVariant && activeVariants.length > 1) return; // necesita elegir variante
-    const variantId = selectedVariant?.id ?? activeVariants[0]?.id;
-    if (!variantId) return;
+    if (!selectedVariant && activeVariants.length > 1) return;
+    const variant = selectedVariant ?? activeVariants[0];
+    if (!variant) return;
 
-    addItem(variantId, quantity);
+    const meta: CartItemMeta = {
+      sku: variant.sku,
+      price: typeof variant.price === "number" ? variant.price : Number(variant.price),
+      images: variant.images?.length > 0 ? variant.images : (product.images ?? []),
+      productName: product.name,
+      productId: product.id,
+      productSlug: product.slug,
+      variantAttributes: variant.variantAttributes?.map((va) => ({
+        attributeValue: { value: va.attributeValue.value },
+      })),
+    };
+
+    addItem(variant.id, quantity, meta);
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
   };
 
-  const canAddToCart = activeVariants.length > 0 &&
-    (activeVariants.length === 1 || selectedVariant !== null);
+  const handleSelectVariant = (variant: Variant) => {
+    const next = selectedVariant?.id === variant.id ? null : variant;
+    setSelectedVariant(next);
+    setQuantity(1);
+  };
+
+  const canAddToCart =
+    activeVariants.length > 0 &&
+    selectedVariant !== null &&
+    (availableStock === null || availableStock > 0);
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl animate-in fade-in duration-500">
@@ -75,6 +105,7 @@ export function ProductDetailClient({ product }: { product: Product }) {
                   src={displayImage}
                   alt={selectedVariant ? `${product.name} - ${selectedVariant.sku}` : product.name}
                   fill
+                  sizes="(max-width: 768px) 100vw, 448px"
                   className="object-contain transition-all duration-300"
                   priority
                 />
@@ -93,7 +124,7 @@ export function ProductDetailClient({ product }: { product: Product }) {
                     key={img.id}
                     className="w-12 h-12 rounded-lg border-2 border-border bg-muted overflow-hidden relative"
                   >
-                    <Image src={img.url} alt={product.name} fill className="object-cover" />
+                    <Image src={img.url} alt={product.name} fill sizes="48px" className="object-cover" />
                   </div>
                 ))}
               </div>
@@ -134,20 +165,24 @@ export function ProductDetailClient({ product }: { product: Product }) {
                     const label = variant.variantAttributes
                       ?.map((va) => va.attributeValue.value)
                       .join(" · ") ?? variant.sku;
+                    const varStock = stockMap[variant.id] ?? 0;
+                    const outOfStock = varStock === 0;
 
                     return (
                       <button
                         key={variant.id}
-                        onClick={() => setSelectedVariant(
-                          selectedVariant?.id === variant.id ? null : variant
-                        )}
-                        className={`px-4 py-2 rounded-xl border font-medium text-sm transition-all ${
+                        onClick={() => !outOfStock && handleSelectVariant(variant)}
+                        disabled={outOfStock}
+                        className={`px-4 py-2 rounded-xl border font-medium text-sm transition-all flex flex-col items-center gap-0.5 disabled:opacity-40 disabled:cursor-not-allowed ${
                           selectedVariant?.id === variant.id
                             ? "border-primary bg-primary/10 text-primary"
                             : "border-border hover:border-primary/50 text-foreground"
                         }`}
                       >
-                        {label}
+                        <span>{label}</span>
+                        <span className={`text-xs font-normal ${outOfStock ? "text-red-500" : "text-muted-foreground"}`}>
+                          {outOfStock ? "Sin stock" : `${varStock} disp.`}
+                        </span>
                       </button>
                     );
                   })}
@@ -160,12 +195,23 @@ export function ProductDetailClient({ product }: { product: Product }) {
               </div>
             )}
 
+            {/* Stock de la variante seleccionada (si es única o ya elegida) */}
+            {availableStock !== null && activeVariants.length === 1 && (
+              <div className={`flex items-center gap-2 text-sm mb-6 font-medium ${availableStock > 0 ? "text-green-600" : "text-red-500"}`}>
+                <Package className="w-4 h-4 shrink-0" />
+                {availableStock > 0
+                  ? `${availableStock} unidad${availableStock !== 1 ? "es" : ""} disponible${availableStock !== 1 ? "s" : ""}`
+                  : "Sin stock"}
+              </div>
+            )}
+
             {/* Cantidad + Botón */}
             <div className="flex items-center gap-4 mb-8">
               <div className="flex items-center border border-border rounded-xl bg-background">
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="px-4 py-3 text-muted-foreground hover:text-foreground transition-colors"
+                  disabled={quantity <= 1}
+                  className="px-4 py-3 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-30"
                   aria-label="Reducir cantidad"
                 >
                   <Minus className="w-4 h-4" />
@@ -173,7 +219,8 @@ export function ProductDetailClient({ product }: { product: Product }) {
                 <span className="w-8 text-center font-bold">{quantity}</span>
                 <button
                   onClick={() => setQuantity(quantity + 1)}
-                  className="px-4 py-3 text-muted-foreground hover:text-foreground transition-colors"
+                  disabled={availableStock !== null && quantity >= availableStock}
+                  className="px-4 py-3 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-30"
                   aria-label="Aumentar cantidad"
                 >
                   <Plus className="w-4 h-4" />

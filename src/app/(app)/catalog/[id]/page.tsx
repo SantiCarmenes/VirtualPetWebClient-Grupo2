@@ -1,11 +1,7 @@
 import { notFound } from "next/navigation";
-import { getProductBySlug } from "@/lib/services/catalog.service";
+import { getProductBySlug, getStockByVariantId } from "@/lib/services/catalog.service";
 import { ProductDetailClient } from "./ProductDetailClient";
 
-/**
- * Server Component — recibe el slug del producto y hace fetch real.
- * La ruta sigue siendo /catalog/[id] pero el parámetro es el slug del producto.
- */
 export default async function ProductPage({
   params,
 }: {
@@ -15,7 +11,16 @@ export default async function ProductPage({
 
   try {
     const product = await getProductBySlug(slug);
-    return <ProductDetailClient product={product} />;
+
+    const activeVariants = product.variants.filter((v) => v.active);
+    const stockEntries = await Promise.all(
+      activeVariants.map((v) =>
+        getStockByVariantId(v.id).then((qty) => [v.id, qty] as [string, number])
+      )
+    );
+    const stockMap = Object.fromEntries(stockEntries);
+
+    return <ProductDetailClient product={product} stockMap={stockMap} />;
   } catch {
     notFound();
   }
