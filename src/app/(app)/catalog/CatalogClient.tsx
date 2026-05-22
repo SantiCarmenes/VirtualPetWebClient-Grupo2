@@ -3,26 +3,22 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useProducts } from "@/hooks/useProducts";
-import type { Category, Attribute } from "@/lib/types";
+import type { CategoryWithAttributes, Attribute } from "@/lib/types";
 import { CatalogSidebar } from "./CatalogSidebar";
 import { CatalogHeader } from "./CatalogHeader";
 import { CatalogGrid } from "./CatalogGrid";
 
 interface Props {
-  categories: Category[];
-  filterableAttributes: Attribute[];
+  categories: CategoryWithAttributes[];
 }
 
-export function CatalogClient({ categories, filterableAttributes }: Props) {
+export function CatalogClient({ categories }: Props) {
   const router       = useRouter();
   const searchParams = useSearchParams();
 
-  const categoriesRef = useRef<Category[]>(categories);
-  const attrsRef      = useRef<Attribute[]>(filterableAttributes);
-  if (categories.length > 0)           categoriesRef.current = categories;
-  if (filterableAttributes.length > 0) attrsRef.current      = filterableAttributes;
+  const categoriesRef = useRef<CategoryWithAttributes[]>(categories);
+  if (categories.length > 0) categoriesRef.current = categories;
   const effectiveCategories = categoriesRef.current;
-  const effectiveAttrs      = attrsRef.current;
 
   const categoriesParam   = searchParams.get("categories")        ?? "";
   const searchQuery       = searchParams.get("search")            ?? "";
@@ -58,31 +54,29 @@ export function CatalogClient({ categories, filterableAttributes }: Props) {
   );
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
-  // Atributos visibles según la categoría seleccionada:
-  // - Sin categoría: solo "tipo-animal" (Mascota) + Precio
-  // - Con categoría(s): tipo-animal + los atributos que aparecen en los productos cargados
+  // Sin categoría: solo "tipo-animal" (presente en todas las categorías).
+  // Con categoría(s): todos los atributos de esa categoría (incluye tipo-animal).
   const visibleAttributes = useMemo(() => {
-    const tipoAnimalAttrs = effectiveAttrs.filter((a) => a.slug === "tipo-animal");
+    const attrMap = new Map<string, Attribute>();
 
-    if (selectedCategorySlugs.length === 0) return tipoAnimalAttrs;
-
-    // Recolectar los attributeValue.id que existen en los productos cargados
-    const usedValueIds = new Set<string>();
-    for (const product of products) {
-      for (const variant of product.variants) {
-        for (const va of variant.variantAttributes) {
-          usedValueIds.add(va.attributeValue.id);
+    if (selectedCategorySlugs.length === 0) {
+      // Mostrar solo tipo-animal (buscarlo en cualquier categoría)
+      for (const cat of effectiveCategories) {
+        for (const attr of cat.attributes) {
+          if (attr.slug === "tipo-animal") attrMap.set(attr.id, attr);
+        }
+      }
+    } else {
+      for (const slug of selectedCategorySlugs) {
+        const cat = effectiveCategories.find((c) => c.slug === slug);
+        for (const attr of (cat?.attributes ?? [])) {
+          attrMap.set(attr.id, attr);
         }
       }
     }
 
-    // Mostrar atributos filtrables que tengan al menos un valor presente en los productos
-    return effectiveAttrs.filter(
-      (attr) =>
-        attr.slug === "tipo-animal" ||
-        attr.values.some((v) => usedValueIds.has(v.id))
-    );
-  }, [effectiveAttrs, products, selectedCategorySlugs]);
+    return Array.from(attrMap.values());
+  }, [effectiveCategories, selectedCategorySlugs]);
 
   useEffect(() => {
     setMinPrice(urlMinPrice);

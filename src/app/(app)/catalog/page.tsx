@@ -1,29 +1,22 @@
 import { Suspense } from "react";
-import { getCategories, getAttributes } from "@/lib/services/catalog.service";
+import { getCategoriesWithAttributes } from "@/lib/services/catalog.service";
 import { CatalogClient } from "./CatalogClient";
-import type { Category, Attribute } from "@/lib/types";
+import type { CategoryWithAttributes } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 export default async function CatalogPage() {
-  let categories: Category[] = [];
-  let attributes: Attribute[] = [];
+  let categories: CategoryWithAttributes[] = [];
 
   try {
-    [categories, attributes] = await Promise.all([
-      getCategories(),
-      getAttributes(true),
-    ]);
+    categories = await getCategoriesWithAttributes();
   } catch {
-    // Si falla → CatalogClient recibe arrays vacíos y sigue funcionando
+    // Si falla → CatalogClient recibe array vacío y sigue funcionando
   }
 
   return (
     <Suspense fallback={null}>
-      <CatalogClient
-        categories={categories}
-        filterableAttributes={attributes}
-      />
+      <CatalogClient categories={categories} />
     </Suspense>
   );
 }

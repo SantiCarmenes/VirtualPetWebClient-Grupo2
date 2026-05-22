@@ -1,5 +1,5 @@
 import { fetchApi } from '@/lib/api';
-import type { Product, ProductsResponse, Category, Attribute } from '@/lib/types';
+import type { Product, ProductsResponse, Category, CategoryWithAttributes, Attribute } from '@/lib/types';
 
 export interface GetProductsParams {
   page?: number;
@@ -46,10 +46,18 @@ export async function getProductBySlug(slug: string): Promise<Product> {
 }
 
 /**
- * Obtiene todas las categorías.
+ * Obtiene todas las categorías (sin atributos).
  */
 export async function getCategories(): Promise<Category[]> {
   return fetchApi('/catalog/categories');
+}
+
+/**
+ * Devuelve las categorías con sus atributos filtrables y valores anidados.
+ * Usado por el sidebar del catálogo.
+ */
+export async function getCategoriesWithAttributes(): Promise<CategoryWithAttributes[]> {
+  return fetchApi('/catalog/categories/with-attributes');
 }
 
 /**

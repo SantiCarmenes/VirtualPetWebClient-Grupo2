@@ -16,9 +16,21 @@ function getActiveStep(status: OrderStatus): number {
   return STEP_ORDER.indexOf(status);
 }
 
+function fmt(date: string) {
+  return new Date(date).toLocaleDateString("es-AR", {
+    day: "numeric", month: "short", year: "numeric",
+  });
+}
+
 export function OrderStatusStepper({ order }: { order: Order }) {
-  const activeStep = getActiveStep(order.status);
+  const activeStep     = getActiveStep(order.status);
   const isNotDelivered = order.status === "NOT_DELIVERED";
+
+  // Build a map status → first occurrence date from history
+  const historyMap = new Map<OrderStatus, string>();
+  for (const entry of (order.statusHistory ?? [])) {
+    if (!historyMap.has(entry.status)) historyMap.set(entry.status, entry.createdAt);
+  }
 
   return (
     <div className="bg-card rounded-3xl border border-border p-8 shadow-sm">
@@ -30,7 +42,7 @@ export function OrderStatusStepper({ order }: { order: Order }) {
           <div>
             <p className="font-bold">Este pedido fue cancelado</p>
             <p className="text-sm mt-1 opacity-80">
-              {new Date(order.updatedAt).toLocaleDateString("es-AR")}
+              {historyMap.get("CANCELLED") ? fmt(historyMap.get("CANCELLED")!) : fmt(order.updatedAt)}
             </p>
           </div>
         </div>
@@ -44,10 +56,11 @@ export function OrderStatusStepper({ order }: { order: Order }) {
             />
             <div className="space-y-12 relative">
               {STEP_CONFIG.map((step, index) => {
-                const isCompleted = index <= activeStep;
-                const isCurrent   = index === activeStep;
+                const isCompleted  = index <= activeStep;
+                const isCurrent    = index === activeStep;
                 const isFailedStep = isCurrent && isNotDelivered;
-                const Icon = isFailedStep ? AlertTriangle : step.icon;
+                const Icon         = isFailedStep ? AlertTriangle : step.icon;
+                const stepDate     = historyMap.get(step.id);
 
                 return (
                   <div key={step.id} className="flex gap-6 items-start">
@@ -70,10 +83,8 @@ export function OrderStatusStepper({ order }: { order: Order }) {
                       >
                         {step.label}
                       </h3>
-                      {isCurrent && !isNotDelivered && (
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {new Date(order.updatedAt).toLocaleDateString("es-AR")}
-                        </p>
+                      {isCompleted && stepDate && (
+                        <p className="text-sm text-muted-foreground mt-1">{fmt(stepDate)}</p>
                       )}
                       {step.id === "DELIVERED" && isCompleted && !isNotDelivered && (
                         <p className="text-sm text-green-600 font-medium mt-1">

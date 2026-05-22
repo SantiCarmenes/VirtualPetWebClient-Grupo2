@@ -1,6 +1,5 @@
 // ============================================================
 // VIRTUALPET — Tipos globales (mapean respuestas de la API)
-// Bloque 1 + 8b.1 del plan de implementación
 // ============================================================
 
 // ─── Auth / Usuario ─────────────────────────────────────────
@@ -91,6 +90,10 @@ export interface Category {
   description?: string;
   imageUrl?: string;
   parentId?: string | null;
+}
+
+export interface CategoryWithAttributes extends Category {
+  attributes: Attribute[];
 }
 
 export interface Product {
@@ -198,10 +201,16 @@ export interface OrderItem {
   skuSnapshot: string;
 }
 
+export interface OrderStatusHistoryEntry {
+  status: OrderStatus;
+  createdAt: string;
+}
+
 export interface Order {
   id: string;
   userId: string;
   status: OrderStatus;
+  statusHistory?: OrderStatusHistoryEntry[];
   customerEmail: string;
   customerName: string;
   shippingAddress: ShippingAddress;
