@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useProducts } from "@/hooks/useProducts";
 import type { Category, Attribute } from "@/lib/types";
@@ -58,10 +58,48 @@ export function CatalogClient({ categories, filterableAttributes }: Props) {
   );
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
+  // Atributos visibles según la categoría seleccionada:
+  // - Sin categoría: solo "tipo-animal" (Mascota) + Precio
+  // - Con categoría(s): tipo-animal + los atributos que aparecen en los productos cargados
+  const visibleAttributes = useMemo(() => {
+    const tipoAnimalAttrs = effectiveAttrs.filter((a) => a.slug === "tipo-animal");
+
+    if (selectedCategorySlugs.length === 0) return tipoAnimalAttrs;
+
+    // Recolectar los attributeValue.id que existen en los productos cargados
+    const usedValueIds = new Set<string>();
+    for (const product of products) {
+      for (const variant of product.variants) {
+        for (const va of variant.variantAttributes) {
+          usedValueIds.add(va.attributeValue.id);
+        }
+      }
+    }
+
+    // Mostrar atributos filtrables que tengan al menos un valor presente en los productos
+    return effectiveAttrs.filter(
+      (attr) =>
+        attr.slug === "tipo-animal" ||
+        attr.values.some((v) => usedValueIds.has(v.id))
+    );
+  }, [effectiveAttrs, products, selectedCategorySlugs]);
+
   useEffect(() => {
     setMinPrice(urlMinPrice);
     setMaxPrice(urlMaxPrice);
   }, [urlMinPrice, urlMaxPrice]);
+
+  // Limpiar de la URL los atributos seleccionados que ya no son visibles
+  // (ej: tenía color=rojo activo, cambia a "Alimentos" que no tiene Color)
+  useEffect(() => {
+    if (selectedAttributeIds.length === 0) return;
+    const validIds = new Set(visibleAttributes.flatMap((a) => a.values.map((v) => v.id)));
+    const stillValid = selectedAttributeIds.filter((id) => validIds.has(id));
+    if (stillValid.length !== selectedAttributeIds.length) {
+      updateUrl({ attributeValueIds: stillValid.length ? stillValid.join(",") : null });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visibleAttributes]);
 
   const updateUrl = useCallback(
     (overrides: Record<string, string | null>) => {
@@ -103,7 +141,7 @@ export function CatalogClient({ categories, filterableAttributes }: Props) {
       <div className="flex flex-col md:flex-row gap-8">
         <CatalogSidebar
           categories={effectiveCategories}
-          filterableAttributes={effectiveAttrs}
+          filterableAttributes={visibleAttributes}
           selectedCategorySlugs={selectedCategorySlugs}
           selectedAttributeIds={selectedAttributeIds}
           expandedAttrs={expandedAttrs}
