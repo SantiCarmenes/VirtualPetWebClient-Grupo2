@@ -91,6 +91,10 @@ button, a, [role="button"], input, select, label {
   touch-action: manipulation;
 }
 
+button, [role="button"] {
+  cursor: pointer;
+}
+
 /* Glassmorphism utilities */
 .glass {
   background: rgba(255, 255, 255, 0.75);
