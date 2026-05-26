@@ -187,6 +187,13 @@ export interface ShippingAddress {
   country: string;
 }
 
+export interface PriceChange {
+  variantId: string;
+  name: string;
+  oldPrice: number;
+  newPrice: number;
+}
+
 export interface OrderItem {
   id: string;
   variantId: string;

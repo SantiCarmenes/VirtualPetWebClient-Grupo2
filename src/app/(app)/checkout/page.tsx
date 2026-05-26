@@ -23,7 +23,16 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { items, cartTotal } = useCart();
   const { user } = useAuth();
-  const { submitOrder, submitGuestOrder, isLoading, error, confirmedOrder } = useCheckout();
+  const {
+    submitOrder,
+    submitGuestOrder,
+    isLoading,
+    error,
+    confirmedOrder,
+    priceChanges,
+    confirmPriceChanges,
+    dismissPriceChanges,
+  } = useCheckout();
 
   const isGuest = !user;
 
@@ -217,6 +226,63 @@ export default function CheckoutPage() {
           </div>
         </div>
       </form>
+
+      {priceChanges && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-5">
+            <div>
+              <h2 className="text-xl font-bold">Precios actualizados</h2>
+              <p className="text-sm text-gray-500 mt-1">
+                Estos productos cambiaron de precio desde que los agregaste al carrito.
+              </p>
+            </div>
+            <ul className="space-y-2">
+              {priceChanges.map((change) => (
+                <li
+                  key={change.variantId}
+                  className="flex items-center justify-between rounded-lg border px-4 py-3 text-sm"
+                >
+                  <span className="font-medium text-gray-800">{change.name}</span>
+                  <span className="flex items-center gap-2 shrink-0 ml-4">
+                    <span className="text-gray-400 line-through">
+                      ${change.oldPrice.toLocaleString("es-AR", { minimumFractionDigits: 2 })}
+                    </span>
+                    <span
+                      className={
+                        change.newPrice > change.oldPrice
+                          ? "font-semibold text-red-600"
+                          : "font-semibold text-green-600"
+                      }
+                    >
+                      ${change.newPrice.toLocaleString("es-AR", { minimumFractionDigits: 2 })}
+                    </span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <p className="text-sm text-gray-600">
+              ¿Confirmás el pedido con los precios actualizados?
+            </p>
+            <div className="flex gap-3 pt-1">
+              <button
+                type="button"
+                onClick={dismissPriceChanges}
+                className="flex-1 rounded-lg border py-2.5 text-sm font-medium hover:bg-gray-50 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={confirmPriceChanges}
+                disabled={isLoading}
+                className="flex-1 rounded-lg bg-primary py-2.5 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50 transition-opacity"
+              >
+                {isLoading ? "Procesando…" : "Confirmar nuevos precios"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
