@@ -1,4 +1,15 @@
+import type { PriceChange } from '@/lib/types';
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+
+export class PriceConflictError extends Error {
+  priceChanges: PriceChange[];
+  constructor(priceChanges: PriceChange[]) {
+    super('Algunos precios cambiaron desde que agregaste los productos al carrito.');
+    this.name = 'PriceConflictError';
+    this.priceChanges = priceChanges;
+  }
+}
 
 function getStoredToken(): string | null {
   if (typeof window === 'undefined') return null;
@@ -76,16 +87,22 @@ export async function fetchApi(
   }
 
   if (!response.ok) {
-    let errorMessage = 'Ocurrió un error inesperado. Intentá de nuevo.';
+    let errorData: Record<string, unknown> = {};
     try {
-      const errorData = await response.json();
-      if (errorData.message) {
-        errorMessage = Array.isArray(errorData.message)
-          ? errorData.message.join(', ')
-          : errorData.message;
-      }
+      errorData = await response.json();
     } catch {
       // sin JSON
+    }
+
+    if (response.status === 409 && Array.isArray(errorData.priceChanges)) {
+      throw new PriceConflictError(errorData.priceChanges as PriceChange[]);
+    }
+
+    let errorMessage = 'Ocurrió un error inesperado. Intentá de nuevo.';
+    if (errorData.message) {
+      errorMessage = Array.isArray(errorData.message)
+        ? (errorData.message as string[]).join(', ')
+        : String(errorData.message);
     }
     throw new Error(errorMessage);
   }

@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import * as orderService from "@/lib/services/order.service";
+import { PriceConflictError } from "@/lib/api";
 import { useCart } from "@/context/CartContext";
-import type { ShippingAddress, PaymentMethod, Order } from "@/lib/types";
+import type { ShippingAddress, PaymentMethod, Order, PriceChange } from "@/lib/types";
 
 export interface AuthCheckoutParams {
   customerEmail: string;
@@ -10,9 +11,15 @@ export interface AuthCheckoutParams {
   shippingAddress: ShippingAddress;
   shippingMethodId?: string;
   paymentMethodCode: PaymentMethod;
+  acceptPriceChanges?: boolean;
 }
 
-export interface GuestCheckoutParams extends AuthCheckoutParams {
+export interface GuestCheckoutParams {
+  customerEmail: string;
+  customerName: string;
+  shippingAddress: ShippingAddress;
+  shippingMethodId?: string;
+  paymentMethodCode: PaymentMethod;
   items: { variantId: string; quantity: number }[];
 }
 
@@ -22,6 +29,9 @@ interface UseCheckoutReturn {
   isLoading: boolean;
   error: string | null;
   confirmedOrder: Order | null;
+  priceChanges: PriceChange[] | null;
+  confirmPriceChanges: () => Promise<void>;
+  dismissPriceChanges: () => void;
 }
 
 export function useCheckout(): UseCheckoutReturn {
@@ -30,6 +40,8 @@ export function useCheckout(): UseCheckoutReturn {
   const [isLoading, setIsLoading]           = useState(false);
   const [error, setError]                   = useState<string | null>(null);
   const [confirmedOrder, setConfirmedOrder] = useState<Order | null>(null);
+  const [priceChanges, setPriceChanges]     = useState<PriceChange[] | null>(null);
+  const [pendingParams, setPendingParams]   = useState<AuthCheckoutParams | null>(null);
 
   const handleCash = async (order: Order, isGuest: boolean) => {
     // Setear confirmedOrder ANTES de clearCart evita la race condition:
@@ -52,10 +64,28 @@ export function useCheckout(): UseCheckoutReturn {
         await handleCash(order, false);
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Error al procesar el pedido.");
+      if (err instanceof PriceConflictError) {
+        setPriceChanges(err.priceChanges);
+        setPendingParams(params);
+      } else {
+        setError(err instanceof Error ? err.message : "Error al procesar el pedido.");
+      }
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const confirmPriceChanges = async () => {
+    if (!pendingParams) return;
+    const params = pendingParams;
+    setPendingParams(null);
+    setPriceChanges(null);
+    await submitOrder({ ...params, acceptPriceChanges: true });
+  };
+
+  const dismissPriceChanges = () => {
+    setPriceChanges(null);
+    setPendingParams(null);
   };
 
   const submitGuestOrder = async (params: GuestCheckoutParams) => {
@@ -77,5 +107,14 @@ export function useCheckout(): UseCheckoutReturn {
     }
   };
 
-  return { submitOrder, submitGuestOrder, isLoading, error, confirmedOrder };
+  return {
+    submitOrder,
+    submitGuestOrder,
+    isLoading,
+    error,
+    confirmedOrder,
+    priceChanges,
+    confirmPriceChanges,
+    dismissPriceChanges,
+  };
 }

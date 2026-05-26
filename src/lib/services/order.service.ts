@@ -13,6 +13,7 @@ export interface CreateOrderParams {
   shippingAddress: ShippingAddress;
   shippingMethodId?: string;
   paymentMethodCode?: PaymentMethod;
+  acceptPriceChanges?: boolean;
 }
 
 export interface GuestCartItem {
