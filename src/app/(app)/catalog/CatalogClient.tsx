@@ -109,6 +109,10 @@ export function CatalogClient({ categories }: Props) {
     [searchParams, router]
   );
 
+  const applyPrice = useCallback(() => {
+    updateUrl({ minPrice: minPrice || null, maxPrice: maxPrice || null });
+  }, [minPrice, maxPrice, updateUrl]);
+
   const clearFilters = () => {
     setMinPrice("");
     setMaxPrice("");
@@ -162,8 +166,7 @@ export function CatalogClient({ categories }: Props) {
           }
           onMinPriceChange={setMinPrice}
           onMaxPriceChange={setMaxPrice}
-          onMinPriceBlur={() => updateUrl({ minPrice: minPrice || null })}
-          onMaxPriceBlur={() => updateUrl({ maxPrice: maxPrice || null })}
+          onApplyPrice={applyPrice}
           onClearFilters={clearFilters}
         />
 

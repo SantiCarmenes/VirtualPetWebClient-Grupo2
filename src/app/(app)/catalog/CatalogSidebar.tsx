@@ -18,8 +18,7 @@ interface Props {
   onToggleAttrGroup: (slug: string) => void;
   onMinPriceChange: (val: string) => void;
   onMaxPriceChange: (val: string) => void;
-  onMinPriceBlur: () => void;
-  onMaxPriceBlur: () => void;
+  onApplyPrice: () => void;
   onClearFilters: () => void;
 }
 
@@ -91,8 +90,7 @@ function SidebarContent({
   onToggleAttrGroup,
   onMinPriceChange,
   onMaxPriceChange,
-  onMinPriceBlur,
-  onMaxPriceBlur,
+  onApplyPrice,
   onClearFilters,
 }: Omit<Props, "isOpen" | "onClose">) {
   // Tipo de animal shown second (after categories), rest in original order
@@ -173,31 +171,47 @@ function SidebarContent({
       {/* 4. Rango de precio */}
       <div>
         <h3 className="font-bold text-lg mb-4 pb-2 border-b border-border">Precio</h3>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 mb-3">
           <div className="relative flex-1">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
               placeholder="Min"
               value={minPrice}
-              onChange={(e) => onMinPriceChange(e.target.value)}
-              onBlur={onMinPriceBlur}
-              className="w-full pl-7 pr-3 py-2 rounded-xl border border-border bg-background focus:ring-2 focus:ring-primary outline-none transition-all text-sm"
+              onChange={(e) => onMinPriceChange(e.target.value.replace(/\D/g, ""))}
+              onKeyDown={(e) => {
+                if (e.key === "-" || e.key === "+" || e.key === "e") e.preventDefault();
+                if (e.key === "Enter") onApplyPrice();
+              }}
+              className="[appearance:textfield] w-full pl-7 pr-3 py-2 rounded-xl border border-border bg-background focus:ring-2 focus:ring-primary outline-none transition-all text-sm"
             />
           </div>
           <span className="text-muted-foreground font-medium">–</span>
           <div className="relative flex-1">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
               placeholder="Max"
               value={maxPrice}
-              onChange={(e) => onMaxPriceChange(e.target.value)}
-              onBlur={onMaxPriceBlur}
-              className="w-full pl-7 pr-3 py-2 rounded-xl border border-border bg-background focus:ring-2 focus:ring-primary outline-none transition-all text-sm"
+              onChange={(e) => onMaxPriceChange(e.target.value.replace(/\D/g, ""))}
+              onKeyDown={(e) => {
+                if (e.key === "-" || e.key === "+" || e.key === "e") e.preventDefault();
+                if (e.key === "Enter") onApplyPrice();
+              }}
+              className="[appearance:textfield] w-full pl-7 pr-3 py-2 rounded-xl border border-border bg-background focus:ring-2 focus:ring-primary outline-none transition-all text-sm"
             />
           </div>
         </div>
+        <button
+          onClick={onApplyPrice}
+          className="w-full py-2 text-sm font-bold bg-primary/10 text-primary rounded-xl hover:bg-primary hover:text-primary-foreground transition-all"
+        >
+          Aplicar precio
+        </button>
       </div>
 
       {/* Limpiar filtros */}
