@@ -24,16 +24,15 @@ export function ChatWidget() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Only show widget for authenticated users
-  if (!user) return null;
-
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
     if (open) {
       bottomRef.current?.scrollIntoView({ behavior: "smooth" });
       inputRef.current?.focus();
     }
   }, [open, messages]);
+
+  // All hooks must run before any conditional return
+  if (!user) return null;
 
   async function handleSend() {
     const text = input.trim();
@@ -46,10 +45,9 @@ export function ChatWidget() {
     setLoading(true);
 
     try {
-      // Send all messages (history + new user message) to backend
       const reply = await sendChatMessage(nextMessages);
       setMessages(prev => [...prev, { role: "assistant", content: reply }]);
-    } catch (err) {
+    } catch {
       setMessages(prev => [
         ...prev,
         {
@@ -87,7 +85,7 @@ export function ChatWidget() {
           <div className="flex items-center gap-3 px-4 py-3 bg-primary text-primary-foreground">
             <Bot className="w-5 h-5 shrink-0" />
             <div className="min-w-0">
-              <p className="font-bold text-sm leading-tight">Asistente VirtualPet</p>
+              <p className="font-bold text-sm leading-tight">Firulais — Asistente VirtualPet</p>
               <p className="text-xs opacity-75">Soporte con IA</p>
             </div>
           </div>
