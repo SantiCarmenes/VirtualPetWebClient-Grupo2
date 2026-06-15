@@ -229,6 +229,8 @@ export interface Order {
   total: number;
   deliveryAttempts: number;
   nextDeliveryAt?: string | null;
+  requiresInvoice?: boolean;
+  invoiceCuit?: string | null;
   createdAt: string;
   updatedAt: string;
   payment?: Payment | null;
