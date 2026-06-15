@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { MessageCircle, X, Send, Bot, User, Loader2 } from "lucide-react";
+import { MessageCircle, X, Send, User, Loader2 } from "lucide-react";
 import { sendChatMessage } from "@/lib/services/chatbot.service";
 import type { ChatMessage } from "@/lib/services/chatbot.service";
 import { useAuth } from "@/context/AuthContext";
@@ -83,9 +83,9 @@ export function ChatWidget() {
         <div className="fixed bottom-24 right-6 z-50 w-[360px] max-h-[520px] flex flex-col rounded-2xl border border-border bg-card shadow-2xl overflow-hidden">
           {/* Header */}
           <div className="flex items-center gap-3 px-4 py-3 bg-primary text-primary-foreground">
-            <Bot className="w-5 h-5 shrink-0" />
+            <span className="text-2xl leading-none shrink-0" role="img" aria-label="Firulais">🐶</span>
             <div className="min-w-0">
-              <p className="font-bold text-sm leading-tight">Firulais — Asistente VirtualPet</p>
+              <p className="font-bold text-sm leading-tight">Firulais</p>
               <p className="text-xs opacity-75">Soporte con IA</p>
             </div>
           </div>
@@ -100,12 +100,12 @@ export function ChatWidget() {
                 <div
                   className={`shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs ${
                     msg.role === "assistant"
-                      ? "bg-primary/10 text-primary"
+                      ? "bg-primary/10"
                       : "bg-muted text-muted-foreground"
                   }`}
                 >
                   {msg.role === "assistant" ? (
-                    <Bot className="w-4 h-4" />
+                    <span className="text-base leading-none" role="img" aria-label="Firulais">🐶</span>
                   ) : (
                     <User className="w-4 h-4" />
                   )}
@@ -124,8 +124,8 @@ export function ChatWidget() {
 
             {loading && (
               <div className="flex gap-2 items-start">
-                <div className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center bg-primary/10 text-primary">
-                  <Bot className="w-4 h-4" />
+                <div className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center bg-primary/10">
+                  <span className="text-base leading-none" role="img" aria-label="Firulais">🐶</span>
                 </div>
                 <div className="bg-muted rounded-2xl rounded-tl-none px-3 py-2">
                   <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
