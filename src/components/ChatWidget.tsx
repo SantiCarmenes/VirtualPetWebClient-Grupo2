@@ -15,6 +15,10 @@ const WELCOME: ChatMessage = {
     "¿En qué te puedo ayudar hoy?",
 };
 
+function storageKey(userId: string) {
+  return `firulais_chat_${userId}`;
+}
+
 export function ChatWidget() {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
@@ -23,6 +27,21 @@ export function ChatWidget() {
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Load persisted history after mount (safe for SSR)
+  useEffect(() => {
+    if (!user) return;
+    try {
+      const stored = localStorage.getItem(storageKey(user.id));
+      if (stored) setMessages(JSON.parse(stored) as ChatMessage[]);
+    } catch {}
+  }, [user?.id]);
+
+  // Persist history on every update
+  useEffect(() => {
+    if (!user) return;
+    localStorage.setItem(storageKey(user.id), JSON.stringify(messages));
+  }, [messages, user?.id]);
 
   useEffect(() => {
     if (open) {
@@ -80,7 +99,7 @@ export function ChatWidget() {
 
       {/* Chat panel */}
       {open && (
-        <div className="fixed bottom-24 right-6 z-50 w-[360px] max-h-[520px] flex flex-col rounded-2xl border border-border bg-card shadow-2xl overflow-hidden">
+        <div className="fixed bottom-24 right-6 z-50 w-[360px] max-h-[min(520px,calc(100vh-7rem))] flex flex-col rounded-2xl border border-border bg-card shadow-2xl overflow-hidden">
           {/* Header */}
           <div className="flex items-center gap-3 px-4 py-3 bg-primary text-primary-foreground">
             <span className="text-2xl leading-none shrink-0" role="img" aria-label="Firulais">🐶</span>

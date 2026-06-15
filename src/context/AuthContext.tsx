@@ -88,6 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    * y resetea el estado local.
    */
   const logout = async () => {
+    if (user) localStorage.removeItem(`firulais_chat_${user.id}`);
     await authService.logout();
     setUser(null);
   };
