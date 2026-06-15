@@ -88,8 +88,8 @@ export function ProfilePedidosTab() {
                     <span className={`text-xs font-bold px-2 py-1 rounded-md mb-2 inline-block ${STATUS_BADGE_CLASS[order.status]}`}>
                       {STATUS_LABEL[order.status]}
                     </span>
-                    <p className="font-bold text-lg group-hover:text-primary transition-colors">
-                      #{order.id.substring(0, 8).toUpperCase()}
+                    <p className="font-mono text-xs font-medium text-foreground/80 select-all mt-1">
+                      {order.id}
                     </p>
                   </div>
                   <span className="font-bold text-lg">

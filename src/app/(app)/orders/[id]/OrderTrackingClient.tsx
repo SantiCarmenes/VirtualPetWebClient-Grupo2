@@ -32,8 +32,8 @@ export function OrderTrackingClient({
           </Link>
           <h1 className="text-3xl font-extrabold tracking-tight">Seguimiento de Pedido</h1>
           <p className="text-muted-foreground mt-1 flex items-center gap-2 flex-wrap">
-            <span className="font-mono font-medium bg-muted px-2 py-0.5 rounded text-foreground">
-              #{order.id.substring(0, 8).toUpperCase()}
+            <span className="font-mono text-xs font-medium bg-muted px-2 py-0.5 rounded text-foreground select-all">
+              {order.id}
             </span>
             <span>•</span>
             <span>{new Date(order.createdAt).toLocaleDateString("es-AR")}</span>
