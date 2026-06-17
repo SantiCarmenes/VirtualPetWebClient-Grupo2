@@ -15,8 +15,30 @@ const WELCOME: ChatMessage = {
     "¿En qué te puedo ayudar hoy?",
 };
 
-function storageKey(userId: string) {
-  return `firulais_chat_${userId}`;
+const STORAGE_KEY   = (userId: string) => `firulais_chat_${userId}`;
+const STORAGE_MAX   = 50;
+const STORAGE_TTL   = 24 * 60 * 60 * 1000; // 24 h
+
+interface StoredChat { messages: ChatMessage[]; savedAt: number }
+
+function loadChat(userId: string): ChatMessage[] | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY(userId));
+    if (!raw) return null;
+    const { messages, savedAt } = JSON.parse(raw) as StoredChat;
+    if (Date.now() - savedAt > STORAGE_TTL) {
+      localStorage.removeItem(STORAGE_KEY(userId));
+      return null;
+    }
+    return messages;
+  } catch { return null; }
+}
+
+function saveChat(userId: string, messages: ChatMessage[]) {
+  try {
+    const payload: StoredChat = { messages: messages.slice(-STORAGE_MAX), savedAt: Date.now() };
+    localStorage.setItem(STORAGE_KEY(userId), JSON.stringify(payload));
+  } catch {}
 }
 
 export function ChatWidget() {
@@ -31,16 +53,14 @@ export function ChatWidget() {
   // Load persisted history after mount (safe for SSR)
   useEffect(() => {
     if (!user) return;
-    try {
-      const stored = localStorage.getItem(storageKey(user.id));
-      if (stored) setMessages(JSON.parse(stored) as ChatMessage[]);
-    } catch {}
+    const saved = loadChat(user.id);
+    if (saved) setMessages(saved);
   }, [user?.id]);
 
-  // Persist history on every update
+  // Persist history on every update (capped + timestamped)
   useEffect(() => {
     if (!user) return;
-    localStorage.setItem(storageKey(user.id), JSON.stringify(messages));
+    saveChat(user.id, messages);
   }, [messages, user?.id]);
 
   useEffect(() => {
@@ -49,9 +69,6 @@ export function ChatWidget() {
       inputRef.current?.focus();
     }
   }, [open, messages]);
-
-  // All hooks must run before any conditional return
-  if (!user) return null;
 
   async function handleSend() {
     const text = input.trim();
