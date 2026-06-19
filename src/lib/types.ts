@@ -213,6 +213,8 @@ export interface OrderStatusHistoryEntry {
   createdAt: string;
 }
 
+export type InvoiceStatus = 'NONE' | 'REQUIRED' | 'DONE';
+
 export interface Order {
   id: string;
   userId: string;
@@ -229,7 +231,7 @@ export interface Order {
   total: number;
   deliveryAttempts: number;
   nextDeliveryAt?: string | null;
-  requiresInvoice?: boolean;
+  invoiceStatus: InvoiceStatus;
   invoiceCuit?: string | null;
   createdAt: string;
   updatedAt: string;
