@@ -1,5 +1,5 @@
 import { FileText, MapPin, Truck } from "lucide-react";
-import type { Order, Payment, Shipment, PaymentMethod, ShipmentStatus } from "@/lib/types";
+import type { Order, Payment, Shipment, PaymentMethod } from "@/lib/types";
 
 const PAYMENT_STATUS_CONFIG: Record<string, { label: string; className: string }> = {
   PENDING:  { label: "Pago pendiente", className: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400" },
@@ -15,12 +15,19 @@ const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
   TRANSFER:    "Transferencia bancaria",
 };
 
-const SHIPMENT_STATUS_LABELS: Record<ShipmentStatus, string> = {
-  PENDING:    "Pendiente",
-  PROCESSING: "Preparando",
-  SHIPPED:    "En camino",
-  DELIVERED:  "Entregado",
-  RETURNED:   "Devuelto",
+const SHIPMENT_STATUS_LABELS: Record<string, string> = {
+  // Estados de envío
+  PENDING:        "Pendiente",
+  PROCESSING:     "Preparando",
+  SHIPPED:        "En camino",
+  DELIVERED:      "Entregado",
+  RETURNED:       "Devuelto",
+  // Estados de orden que también puede traer el backend
+  RECEIVED:       "Pedido recibido",
+  IN_PREPARATION: "En preparación",
+  IN_TRANSIT:     "En camino",
+  NOT_DELIVERED:  "Entrega fallida",
+  CANCELLED:      "Cancelado",
 };
 
 interface Props {
