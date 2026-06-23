@@ -1,5 +1,5 @@
 import { FileText, MapPin, Truck } from "lucide-react";
-import type { Order, Payment, Shipment, PaymentMethod } from "@/lib/types";
+import type { Order, Payment, Shipment, PaymentMethod, ShipmentStatus, InvoiceStatus } from "@/lib/types";
 
 const PAYMENT_STATUS_CONFIG: Record<string, { label: string; className: string }> = {
   PENDING:  { label: "Pago pendiente", className: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400" },
@@ -110,7 +110,7 @@ export function OrderSideColumn({ order, payment, shipment }: Props) {
       </div>
 
       {/* Facturación */}
-      {order.requiresInvoice && (
+      {order.invoiceStatus !== 'NONE' && (
         <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
           <h3 className="font-bold flex items-center gap-2 mb-4">
             <FileText className="w-4 h-4 text-primary" />
@@ -119,8 +119,14 @@ export function OrderSideColumn({ order, payment, shipment }: Props) {
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Estado</span>
-              <span className="inline-block text-xs font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
-                Requiere factura
+              <span
+                className={`inline-block text-xs font-bold px-2 py-0.5 rounded-full ${
+                  order.invoiceStatus === 'DONE'
+                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                    : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                }`}
+              >
+                {order.invoiceStatus === 'DONE' ? 'Facturado' : 'Requiere factura'}
               </span>
             </div>
             <div className="flex justify-between">
