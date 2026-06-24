@@ -56,9 +56,22 @@ export async function guestCheckout(
 
 /**
  * Obtiene las órdenes del usuario autenticado (paginadas).
+ *
+ * El backend devuelve la paginación anidada (`{ data, pagination: { total, page, limit, pages } }`),
+ * mientras que el front la consume al nivel raíz (`OrdersResponse`). Normalizamos acá para que el
+ * hook reciba `total` y `totalPages`; sin esto, `totalPages` quedaba `undefined`, el paginador nunca
+ * se renderizaba y solo se veía la primera página de pedidos.
  */
 export async function getMyOrders(page = 1, limit = 5): Promise<OrdersResponse> {
-  return fetchApi(`/orders?page=${page}&limit=${limit}`);
+  const res = await fetchApi(`/orders?page=${page}&limit=${limit}`);
+  const meta = res.pagination ?? res;
+  return {
+    data: res.data ?? [],
+    total: meta.total ?? 0,
+    page: meta.page ?? page,
+    limit: meta.limit ?? limit,
+    totalPages: meta.pages ?? meta.totalPages ?? 1,
+  };
 }
 
 /**
